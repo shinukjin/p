@@ -1,0 +1,72 @@
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+/gradle/
+
+### VS Code ###
+.vscode/
+
+### 보안 관련 파일들 ###
+# 환경변수 파일들
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# API 키가 포함된 설정 파일들
+**/application-local.properties
+**/application-dev.properties
+**/application-prod.properties
+
+# 로그 파일들
+*.log
+logs/
+
+# 임시 파일들
+*.tmp
+*.temp
+
+# 데이터베이스 파일들
+*.db
+*.sqlite
+*.sqlite3
+
+# 백업 파일들
+*.bak
+*.backup
+
+# 개인 설정 파일들
+config/local.json
+config/secrets.json
