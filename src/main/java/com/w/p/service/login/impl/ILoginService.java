@@ -31,7 +31,7 @@ public class ILoginService implements LoginService {
             throw new BadCredentialsException("Invalid password");
         }
 
-        String token = jwtTokenProvider.createToken(user.getId(), user.getUsername(), user.getRole());
+        String token = jwtTokenProvider.createToken(user.getId(), user.getUsername(), user.getRole().name());
 
         return new LoginDTO.LoginResponse(token);
     }

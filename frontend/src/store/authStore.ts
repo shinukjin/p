@@ -13,6 +13,7 @@ interface AuthActions {
   setUser: (user: User) => void;
   setToken: (token: string) => void;
   login: (user: User, token: string) => void;
+  loginAdmin: (adminInfo: User, token: string) => void;
   logout: () => void;
   setLoading: (loading: boolean) => void;
 }
@@ -41,6 +42,17 @@ export const useAuthStore = create<AuthStore>()(
       login: (user: User, token: string) => {
         set({ 
           user, 
+          token, 
+          isAuthenticated: true,
+          isLoading: false 
+        });
+        localStorage.setItem('token', token);
+      },
+
+      // 관리자 로그인용 (adminInfo 포함)
+      loginAdmin: (adminInfo: User, token: string) => {
+        set({ 
+          user: adminInfo, 
           token, 
           isAuthenticated: true,
           isLoading: false 

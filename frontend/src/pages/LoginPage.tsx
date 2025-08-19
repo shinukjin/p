@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { FiUser, FiLock, FiLogIn } from 'react-icons/fi';
 import { useLogin } from '../hooks/useAuth';
 import { useAuthStore } from '../store/authStore';
@@ -39,24 +38,14 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
         <div className="card p-8">
           <div className="text-center mb-8">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="w-16 h-16 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-4"
-            >
+            <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
               <FiLogIn className="w-8 h-8 text-white" />
-            </motion.div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">로그인</h1>
+            </div>
+            <h1 className="text-2xl font-semibold text-gray-900 mb-2">로그인</h1>
             <p className="text-gray-600">계정에 로그인하세요</p>
           </div>
 
@@ -76,13 +65,9 @@ const LoginPage: React.FC = () => {
                 />
               </div>
               {errors.username && (
-                <motion.p
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-1 text-sm text-red-600"
-                >
+                <p className="mt-1 text-sm text-red-600">
                   {errors.username.message}
-                </motion.p>
+                </p>
               )}
             </div>
 
@@ -101,47 +86,44 @@ const LoginPage: React.FC = () => {
                 />
               </div>
               {errors.password && (
-                <motion.p
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-1 text-sm text-red-600"
-                >
+                <p className="mt-1 text-sm text-red-600">
                   {errors.password.message}
-                </motion.p>
+                </p>
               )}
             </div>
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <button
               type="submit"
               disabled={isLoading}
-              className="btn-primary w-full py-3 text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary w-full"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   로그인 중...
                 </div>
               ) : (
-                '로그인'
+                <div className="flex items-center justify-center">
+                  <FiLogIn className="w-4 h-4 mr-2" />
+                  로그인
+                </div>
               )}
-            </motion.button>
+            </button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-gray-600">
+            <p className="text-sm text-gray-600">
               계정이 없으신가요?{' '}
               <Link
                 to="/signup"
-                className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                className="font-medium text-gray-700 hover:text-gray-900 underline"
               >
                 회원가입
               </Link>
             </p>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

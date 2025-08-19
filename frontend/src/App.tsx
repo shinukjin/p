@@ -3,13 +3,14 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
-import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
+import LoginPage from './pages/auth/LoginPage';
+import SignupPage from './pages/auth/SignupPage';
 import DashboardPage from './pages/DashboardPage';
 import WeddingHallsPage from './pages/WeddingHallsPage';
 import WeddingServicesPage from './pages/WeddingServicesPage';
 import RealEstatesPage from './pages/RealEstatesPage';
 import ApartmentTradesPage from './pages/ApartmentTradesPage';
+import { adminRoutes } from './routes/adminRoutes';
 
 // React Query 클라이언트 생성
 const queryClient = new QueryClient({
@@ -98,6 +99,9 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* 관리자 라우트 */}
+            {adminRoutes}
 
             {/* 기본 라우트 */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

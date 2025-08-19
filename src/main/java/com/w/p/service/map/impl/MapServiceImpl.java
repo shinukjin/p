@@ -14,7 +14,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 /**
  * 지도 관련 서비스 구현체
@@ -23,16 +22,16 @@ import java.util.List;
 @Slf4j
 public class MapServiceImpl implements MapService {
 
-    @Value("${naver.map.client.id:}")
+    @Value("${naver.map.client.id}")
     private String naverMapClientId;
 
-    @Value("${naver.map.client.secret:}")
+    @Value("${naver.map.client.secret}")
     private String naverMapClientSecret;
 
-    @Value("${naver.map.geocode.url:https://maps.apigw.ntruss.com/map-geocode/v2/geocode}")
+    @Value("${naver.map.geocode.url}")
     private String geocodeApiUrl;
 
-    @Value("${naver.map.reverse.geocode.url:https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc}")
+    @Value("${naver.map.reverse.geocode.url}")
     private String reverseGeocodeApiUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();

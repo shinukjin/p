@@ -2,6 +2,7 @@ import { apiClient } from './client';
 import type {
   LoginRequest,
   LoginResponse,
+  AdminLoginResponse,
   SignupRequest,
   SignupResponse,
   ApiResponse,
@@ -10,6 +11,12 @@ import type {
 // 로그인 API
 export const login = async (data: LoginRequest): Promise<ApiResponse<LoginResponse>> => {
   const response = await apiClient.post<ApiResponse<LoginResponse>>('/auth/login', data);
+  return response.data;
+};
+
+// 관리자 로그인 API
+export const adminLogin = async (data: LoginRequest): Promise<ApiResponse<AdminLoginResponse>> => {
+  const response = await apiClient.post<ApiResponse<AdminLoginResponse>>('/admin/login', data);
   return response.data;
 };
 

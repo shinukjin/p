@@ -36,6 +36,25 @@ public class JwtTokenProvider {
             .compact();
     }
 
+    /**
+     * User 엔티티로부터 JWT 토큰 생성
+     */
+    public String generateToken(com.w.p.entity.User user) {
+        Claims claims = Jwts.claims().setSubject(user.getUsername());
+        claims.put("id", user.getId());
+        claims.put("role", user.getRole().name());
+
+        Date now = new Date();
+        Date expired = new Date(now.getTime() + expiration);
+
+        return Jwts.builder()
+            .setClaims(claims)
+            .setIssuedAt(now)
+            .setExpiration(expired)
+            .signWith(Keys.hmacShaKeyFor(scretKey.getBytes()), SignatureAlgorithm.HS256)
+            .compact();
+    }
+
     public Claims getClaims(String token){
         return Jwts.parserBuilder()
             .setSigningKey(scretKey.getBytes())

@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.Builder;
+import lombok.AllArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,6 +18,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class WeddingHall {
 
     @Id
@@ -64,6 +68,9 @@ public class WeddingHall {
     @Column
     private String memo; // 개인 메모
 
+    @Column
+    private String status = "active"; // 상태 (active, inactive, deleted)
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user; // 등록한 사용자
@@ -78,6 +85,9 @@ public class WeddingHall {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (status == null) {
+            status = "active";
+        }
     }
 
     @PreUpdate
@@ -89,5 +99,6 @@ public class WeddingHall {
         this.name = name;
         this.address = address;
         this.user = user;
+        this.status = "active";
     }
 }

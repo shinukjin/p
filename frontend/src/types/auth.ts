@@ -3,7 +3,13 @@
 export interface User {
   id: number;
   username: string;
+  name?: string;
+  email?: string;
+  phone?: string;
   role?: string;
+  status?: string;
+  lastLoginAt?: string;
+  createdAt?: string;
 }
 
 export interface LoginRequest {
@@ -18,12 +24,26 @@ export interface LoginResponse {
 export interface SignupRequest {
   username: string;
   password: string;
+  name: string;
+  email: string;
+  phone?: string;
 }
 
 export interface SignupResponse {
   id: number;
   username: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: string;
+  status: string;
+  createdAt: string;
   message: string;
+}
+
+export interface AdminLoginResponse {
+  token: string;
+  adminInfo: User;
 }
 
 export interface ApiResponse<T> {

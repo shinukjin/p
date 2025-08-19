@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   FiTrendingUp,
@@ -11,44 +11,82 @@ import {
   FiCalendar,
   FiMapPin,
   FiHome,
-  FiExternalLink
+  FiExternalLink,
+  FiArrowUp,
+  FiArrowDown
 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { getApartmentTrades, getRegionCodes, type ApartmentTrade, type RegionCode, type ApartmentSearchParams } from '../api/apartment';
-import { geocodeAddress, createPropertyMapUrl } from '../api/map';
+import { geocodeAddress, createPropertyMapUrl, type Coordinates } from '../api/map';
 
 const ApartmentTradesPage: React.FC = () => {
-  const [searchParams, setSearchParams] = useState<ApartmentSearchParams>({
+  const [searchParams, setSearchParams] = useState<ApartmentSearchParams>(() => ({
     lawdCd: '11680', // 강남구 기본값
     dealYmd: new Date().toISOString().slice(0, 7).replace('-', ''), // 현재 년월
-    numOfRows: 20,
+    numOfRows: 1000, // 필터링을 위해 충분한 데이터 조회
     pageNo: 1
-  });
+  }));
   
   const [trades, setTrades] = useState<ApartmentTrade[]>([]);
   const [regionCodes, setRegionCodes] = useState<RegionCode[]>([]);
   const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(true);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'chart'>('table');
-  const [totalCount, setTotalCount] = useState(0);
+  
+  // 클라이언트 사이드 필터링/정렬 상태
+  const [filters, setFilters] = useState(() => ({
+    apartmentName: '',
+    dong: '',
+    minPrice: '',
+    maxPrice: '',
+    minArea: '',
+    maxArea: '',
+    minFloor: '',
+    maxFloor: '',
+    buildYear: '',
+    dealDateFrom: '',
+    dealDateTo: ''
+  }));
+  
+  const [sortConfig, setSortConfig] = useState(() => ({
+    sortBy: 'dealDate',
+    sortOrder: 'desc'
+  }));
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+
+  // 초기 로드 여부를 추적하는 ref
+  const isInitialLoad = useRef(true);
 
   // 컴포넌트 마운트 시 초기 데이터 로드
   useEffect(() => {
-    loadRegionCodes();
-    loadTrades();
-  }, []);
-
-  // 검색 조건 변경 시 데이터 재로드
-  useEffect(() => {
-    if (searchParams.lawdCd && searchParams.dealYmd) {
-      loadTrades();
+    if (isInitialLoad.current) {
+      isInitialLoad.current = false;
+      
+      // 초기 로드 시 하드코딩된 값 사용 (searchParams 참조 제거)
+      const initialParams = {
+        lawdCd: '11680', // 강남구 기본값
+        dealYmd: new Date().toISOString().slice(0, 7).replace('-', ''), // 현재 년월
+        numOfRows: 1000,
+        pageNo: 1
+      };
+      
+      // 지역코드와 실거래가 데이터를 동시에 로드하여 렌더링 최소화
+      Promise.all([
+        loadRegionCodes(),
+        loadTradesWithParams(initialParams)
+      ]);
     }
-  }, [searchParams.lawdCd, searchParams.dealYmd, searchParams.numOfRows, searchParams.pageNo]);
+  }, []); // 빈 의존성 배열로 마운트 시에만 실행
+
+  // 검색 조건 변경 시 데이터 재로드 제거 - 수동 검색만 허용
 
   const loadRegionCodes = async () => {
     try {
       const response = await getRegionCodes();
-      if (response.success) {
+      if (response.success && response.data) {
         setRegionCodes(response.data);
       }
     } catch (error) {
@@ -56,13 +94,12 @@ const ApartmentTradesPage: React.FC = () => {
     }
   };
 
-  const loadTrades = async () => {
+  const loadTradesWithParams = async (params: ApartmentSearchParams) => {
     setLoading(true);
     try {
-      const response = await getApartmentTrades(searchParams);
-      if (response.success) {
+      const response = await getApartmentTrades(params);
+      if (response.success && response.data) {
         setTrades(response.data);
-        setTotalCount(response.data.length);
       }
     } catch (error) {
       console.error('실거래가 데이터 로드 실패:', error);
@@ -71,13 +108,137 @@ const ApartmentTradesPage: React.FC = () => {
     }
   };
 
+  // 클라이언트 사이드 필터링 및 정렬
+  const filteredAndSortedTrades = useMemo(() => {
+    let filtered = trades.filter(trade => {
+      // 아파트명 필터링
+      if (filters.apartmentName && !trade.apartmentName.toLowerCase().includes(filters.apartmentName.toLowerCase())) {
+        return false;
+      }
+      
+      // 동 필터링
+      if (filters.dong && !trade.dong.toLowerCase().includes(filters.dong.toLowerCase())) {
+        return false;
+      }
+      
+      // 거래금액 필터링
+      if (filters.minPrice || filters.maxPrice) {
+        const price = parseInt(trade.dealAmount.replace(/[^0-9]/g, ''));
+        if (filters.minPrice && price < parseInt(filters.minPrice)) return false;
+        if (filters.maxPrice && price > parseInt(filters.maxPrice)) return false;
+      }
+      
+      // 전용면적 필터링
+      if (filters.minArea || filters.maxArea) {
+        const area = parseFloat(trade.exclusiveArea);
+        if (filters.minArea && area < parseFloat(filters.minArea)) return false;
+        if (filters.maxArea && area > parseFloat(filters.maxArea)) return false;
+      }
+      
+      // 층수 필터링
+      if (filters.minFloor || filters.maxFloor) {
+        const floor = parseInt(trade.floor);
+        if (filters.minFloor && floor < parseInt(filters.minFloor)) return false;
+        if (filters.maxFloor && floor > parseInt(filters.maxFloor)) return false;
+      }
+      
+      // 건축년도 필터링
+      if (filters.buildYear && trade.buildYear !== filters.buildYear) {
+        return false;
+      }
+      
+      // 거래일자 필터링
+      if (filters.dealDateFrom || filters.dealDateTo) {
+        const dealDate = trade.dealDate;
+        if (filters.dealDateFrom && dealDate < filters.dealDateFrom) return false;
+        if (filters.dealDateTo && dealDate > filters.dealDateTo) return false;
+      }
+      
+      return true;
+    });
+    
+    // 정렬
+    filtered.sort((a, b) => {
+      let aValue: any, bValue: any;
+      
+      switch (sortConfig.sortBy) {
+        case 'dealAmount':
+          aValue = parseInt(a.dealAmount.replace(/[^0-9]/g, ''));
+          bValue = parseInt(b.dealAmount.replace(/[^0-9]/g, ''));
+          break;
+        case 'exclusiveArea':
+          aValue = parseFloat(a.exclusiveArea);
+          bValue = parseFloat(b.exclusiveArea);
+          break;
+        case 'floor':
+          aValue = parseInt(a.floor);
+          bValue = parseInt(b.floor);
+          break;
+        case 'buildYear':
+          aValue = parseInt(a.buildYear);
+          bValue = parseInt(b.buildYear);
+          break;
+        default: // dealDate
+          aValue = a.dealDate;
+          bValue = b.dealDate;
+      }
+      
+      if (sortConfig.sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+    
+    return filtered;
+  }, [trades, filters, sortConfig]);
+
+  // 페이징 적용
+  const paginatedTrades = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredAndSortedTrades.slice(startIndex, endIndex);
+  }, [filteredAndSortedTrades, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filteredAndSortedTrades.length / itemsPerPage);
+
   const handleSearch = () => {
-    setSearchParams(prev => ({ ...prev, pageNo: 1 }));
-    loadTrades();
+    setCurrentPage(1);
+    // searchParams를 직접 전달하여 API 호출
+    loadTradesWithParams(searchParams);
   };
 
   const handleParamChange = (key: keyof ApartmentSearchParams, value: string | number) => {
     setSearchParams(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (sortBy: string) => {
+    setSortConfig(prev => ({
+      sortBy,
+      sortOrder: prev.sortBy === sortBy && prev.sortOrder === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      apartmentName: '',
+      dong: '',
+      minPrice: '',
+      maxPrice: '',
+      minArea: '',
+      maxArea: '',
+      minFloor: '',
+      maxFloor: '',
+      buildYear: '',
+      dealDateFrom: '',
+      dealDateTo: ''
+    });
+    setCurrentPage(1);
   };
 
   const formatPrice = (price: string) => {
@@ -96,32 +257,21 @@ const ApartmentTradesPage: React.FC = () => {
   };
 
   // 매물보기 버튼 클릭 핸들러 - 네이버 부동산 새 탭으로 열기
-  const handleViewProperty = async (trade: ApartmentTrade) => {
+  const handleViewProperty = async (trade: ApartmentTrade, type: 'A1' | 'B1') => {
     try {
-      console.log('매물보기 클릭:', trade.apartmentName, trade.dong, trade.jibun);
+      console.log('매물보기 클릭:', trade.apartmentName, trade.dong, trade.jibun, type);
 
       // 먼저 주소를 좌표로 변환 시도
       const fullAddress = `${trade.dong} ${trade.jibun}`;
-      const response = await geocodeAddress(fullAddress);
+      const coords = await geocodeAddress(fullAddress);
 
-      let mapUrl: string;
+      let mapUrl: string='';
+      const searchKeyword = `${trade.apartmentName} ${trade.dong} ${trade.jibun}`;
 
-      if (response.success && response.data?.coordinates) {
-        // 좌표 변환 성공 시 정확한 위치로 네이버 부동산 열기
-        console.log('좌표 변환 성공:', response.data.coordinates);
-        mapUrl = createPropertyMapUrl(
-          trade.dong,
-          trade.jibun,
-          trade.apartmentName,
-          response.data.coordinates
-        );
-      } else {
-        // 좌표 변환 실패 시 아파트명으로 검색
-        console.log('좌표 변환 실패, 검색으로 대체');
-        mapUrl = createPropertyMapUrl(trade.dong, trade.jibun, trade.apartmentName);
-      }
-
-      console.log('네이버 부동산 URL:', mapUrl);
+      if (coords) {
+        // 좌표 변환 성공 시 좌표 기반으로 열기
+        mapUrl = createPropertyMapUrl(coords as Coordinates, type);
+      } 
 
       // 새 탭으로 네이버 부동산 열기
       const newWindow = window.open(mapUrl, '_blank');
@@ -135,7 +285,15 @@ const ApartmentTradesPage: React.FC = () => {
       console.error('매물보기 실패:', error);
 
       // 오류 발생 시에도 기본 검색으로 열기
-      const fallbackUrl = createPropertyMapUrl(trade.dong, trade.jibun, trade.apartmentName);
+      const searchKeyword = `${trade.apartmentName} ${trade.dong} ${trade.jibun}`;
+      let fallbackUrl: string;
+      
+      if (type === 'B1') {
+        fallbackUrl = createPropertySearchUrl(searchKeyword);
+      } else {
+        fallbackUrl = createPropertySearchUrl(searchKeyword + ' 전세');
+      }
+      
       console.log('오류 발생, 기본 URL로 대체:', fallbackUrl);
 
       const newWindow = window.open(fallbackUrl, '_blank');
@@ -196,84 +354,287 @@ const ApartmentTradesPage: React.FC = () => {
               <FiFilter className="w-5 h-5 mr-2" />
               검색 조건
             </h2>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              {showFilters ? '접기' : '펼치기'}
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              >
+                {showAdvancedFilters ? '기본 검색' : '고급 검색'}
+              </button>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                {showFilters ? '접기' : '펼치기'}
+              </button>
+            </div>
           </div>
 
           {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <FiMapPin className="w-4 h-4 inline mr-1" />
-                  지역
-                </label>
-                <select
-                  value={searchParams.lawdCd}
-                  onChange={(e) => handleParamChange('lawdCd', e.target.value)}
-                  className="input"
-                >
-                  {regionCodes.map((region) => (
-                    <option key={region.code} value={region.code}>
-                      {region.name}
-                    </option>
+            <>
+              {/* 기본 검색 조건 */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <FiMapPin className="w-4 h-4 inline mr-1" />
+                    지역
+                  </label>
+                  <select
+                    value={searchParams.lawdCd}
+                    onChange={(e) => handleParamChange('lawdCd', e.target.value)}
+                    className="input"
+                  >
+                    {regionCodes.map((region) => (
+                      <option key={region.code} value={region.code}>
+                        {region.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <FiCalendar className="w-4 h-4 inline mr-1" />
+                    거래년월
+                  </label>
+                  <input
+                    type="month"
+                    value={searchParams.dealYmd?.slice(0, 4) + '-' + searchParams.dealYmd?.slice(4, 6)}
+                    onChange={(e) => handleParamChange('dealYmd', e.target.value.replace('-', ''))}
+                    max={getCurrentYearMonth()}
+                    className="input"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    페이지당 건수
+                  </label>
+                  <select
+                    value={itemsPerPage}
+                    onChange={(e) => {
+                      setItemsPerPage(parseInt(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="input"
+                  >
+                    <option value={10}>10건</option>
+                    <option value={20}>20건</option>
+                    <option value={50}>50건</option>
+                    <option value={100}>100건</option>
+                  </select>
+                </div>
+
+                <div className="flex items-end">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleSearch}
+                    disabled={loading}
+                    className="btn-primary w-full flex items-center justify-center"
+                  >
+                    {loading ? (
+                      <FiRefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <FiSearch className="w-4 h-4 mr-2" />
+                    )}
+                    {loading ? '조회중...' : '조회하기'}
+                  </motion.button>
+                </div>
+              </div>
+
+              {/* 고급 검색 조건 */}
+              {showAdvancedFilters && (
+                <div className="border-t pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        아파트명
+                      </label>
+                      <input
+                        type="text"
+                        value={filters.apartmentName}
+                        onChange={(e) => handleFilterChange('apartmentName', e.target.value)}
+                        placeholder="아파트명 입력"
+                        className="input"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        동
+                      </label>
+                      <input
+                        type="text"
+                        value={filters.dong}
+                        onChange={(e) => handleFilterChange('dong', e.target.value)}
+                        placeholder="동 입력"
+                        className="input"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        최소 거래금액 (만원)
+                      </label>
+                      <input
+                        type="number"
+                        value={filters.minPrice}
+                        onChange={(e) => handleFilterChange('minPrice', e.target.value)}
+                        placeholder="최소 금액"
+                        className="input"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        최대 거래금액 (만원)
+                      </label>
+                      <input
+                        type="number"
+                        value={filters.maxPrice}
+                        onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
+                        placeholder="최대 금액"
+                        className="input"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        최소 면적 (㎡)
+                      </label>
+                      <input
+                        type="number"
+                        value={filters.minArea}
+                        onChange={(e) => handleFilterChange('minArea', e.target.value)}
+                        placeholder="최소 면적"
+                        className="input"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        최대 면적 (㎡)
+                      </label>
+                      <input
+                        type="number"
+                        value={filters.maxArea}
+                        onChange={(e) => handleFilterChange('maxArea', e.target.value)}
+                        placeholder="최대 면적"
+                        className="input"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        최소 층수
+                      </label>
+                      <input
+                        type="number"
+                        value={filters.minFloor}
+                        onChange={(e) => handleFilterChange('minFloor', e.target.value)}
+                        placeholder="최소 층수"
+                        className="input"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        최대 층수
+                      </label>
+                      <input
+                        type="number"
+                        value={filters.maxFloor}
+                        onChange={(e) => handleFilterChange('maxFloor', e.target.value)}
+                        placeholder="최대 층수"
+                        className="input"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        건축년도
+                      </label>
+                      <input
+                        type="number"
+                        value={filters.buildYear}
+                        onChange={(e) => handleFilterChange('buildYear', e.target.value)}
+                        placeholder="건축년도"
+                        className="input"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        거래일자 시작
+                      </label>
+                      <input
+                        type="date"
+                        value={filters.dealDateFrom}
+                        onChange={(e) => handleFilterChange('dealDateFrom', e.target.value)}
+                        className="input"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        거래일자 종료
+                      </label>
+                      <input
+                        type="date"
+                        value={filters.dealDateTo}
+                        onChange={(e) => handleFilterChange('dealDateTo', e.target.value)}
+                        className="input"
+                      />
+                    </div>
+
+                    <div className="flex items-end">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={clearFilters}
+                        className="btn-secondary w-full"
+                      >
+                        필터 초기화
+                      </motion.button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 정렬 옵션 */}
+              <div className="border-t pt-4 mt-4">
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm font-medium text-gray-700">정렬:</span>
+                  {[
+                    { key: 'dealDate', label: '거래일자' },
+                    { key: 'dealAmount', label: '거래금액' },
+                    { key: 'exclusiveArea', label: '면적' },
+                    { key: 'floor', label: '층수' },
+                    { key: 'buildYear', label: '건축년도' }
+                  ].map((sortOption) => (
+                    <button
+                      key={sortOption.key}
+                      onClick={() => handleSortChange(sortOption.key)}
+                      className={`flex items-center space-x-1 px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                        sortConfig.sortBy === sortOption.key
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      <span>{sortOption.label}</span>
+                      {sortConfig.sortBy === sortOption.key && (
+                        sortConfig.sortOrder === 'asc' ? (
+                          <FiArrowUp className="w-3 h-3" />
+                        ) : (
+                          <FiArrowDown className="w-3 h-3" />
+                        )
+                      )}
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <FiCalendar className="w-4 h-4 inline mr-1" />
-                  거래년월
-                </label>
-                <input
-                  type="month"
-                  value={searchParams.dealYmd?.slice(0, 4) + '-' + searchParams.dealYmd?.slice(4, 6)}
-                  onChange={(e) => handleParamChange('dealYmd', e.target.value.replace('-', ''))}
-                  max={getCurrentYearMonth()}
-                  className="input"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  조회 건수
-                </label>
-                <select
-                  value={searchParams.numOfRows}
-                  onChange={(e) => handleParamChange('numOfRows', parseInt(e.target.value))}
-                  className="input"
-                >
-                  <option value={10}>10건</option>
-                  <option value={20}>20건</option>
-                  <option value={50}>50건</option>
-                  <option value={100}>100건</option>
-                  <option value={300}>300건</option>
-                  <option value={500}>500건</option>
-                  <option value={1000}>1000건</option>
-                </select>
-              </div>
-
-              <div className="flex items-end">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleSearch}
-                  disabled={loading}
-                  className="btn-primary w-full flex items-center justify-center"
-                >
-                  {loading ? (
-                    <FiRefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <FiSearch className="w-4 h-4 mr-2" />
-                  )}
-                  {loading ? '조회중...' : '조회하기'}
-                </motion.button>
-              </div>
-            </div>
+            </>
           )}
         </motion.div>
 
@@ -287,7 +648,7 @@ const ApartmentTradesPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">총 거래건수</p>
-                <p className="text-2xl font-bold text-gray-900">{totalCount}건</p>
+                <p className="text-2xl font-bold text-gray-900">{filteredAndSortedTrades.length}건</p>
               </div>
               <FiHome className="w-8 h-8 text-blue-500" />
             </div>
@@ -303,12 +664,12 @@ const ApartmentTradesPage: React.FC = () => {
               <div>
                 <p className="text-sm text-gray-600">평균 거래가</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {trades.length > 0 
+                  {filteredAndSortedTrades.length > 0 
                     ? formatPrice(
                         Math.round(
-                          trades.reduce((sum, trade) => 
+                          filteredAndSortedTrades.reduce((sum, trade) => 
                             sum + parseInt(trade.dealAmount.replace(/[^0-9]/g, '')), 0
-                          ) / trades.length
+                          ) / filteredAndSortedTrades.length
                         ).toString()
                       )
                     : '0'
@@ -329,10 +690,10 @@ const ApartmentTradesPage: React.FC = () => {
               <div>
                 <p className="text-sm text-gray-600">최고 거래가</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {trades.length > 0 
+                  {filteredAndSortedTrades.length > 0 
                     ? formatPrice(
                         Math.max(
-                          ...trades.map(trade => parseInt(trade.dealAmount.replace(/[^0-9]/g, '')))
+                          ...filteredAndSortedTrades.map(trade => parseInt(trade.dealAmount.replace(/[^0-9]/g, '')))
                         ).toString()
                       )
                     : '0'
@@ -353,10 +714,10 @@ const ApartmentTradesPage: React.FC = () => {
               <div>
                 <p className="text-sm text-gray-600">최저 거래가</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {trades.length > 0 
+                  {filteredAndSortedTrades.length > 0 
                     ? formatPrice(
                         Math.min(
-                          ...trades.map(trade => parseInt(trade.dealAmount.replace(/[^0-9]/g, '')))
+                          ...filteredAndSortedTrades.map(trade => parseInt(trade.dealAmount.replace(/[^0-9]/g, '')))
                         ).toString()
                       )
                     : '0'
@@ -385,7 +746,7 @@ const ApartmentTradesPage: React.FC = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
                 <p className="text-gray-600">데이터를 불러오는 중...</p>
               </div>
-            ) : trades.length > 0 ? (
+            ) : filteredAndSortedTrades.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -420,7 +781,7 @@ const ApartmentTradesPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {trades.map((trade, index) => (
+                    {paginatedTrades.map((trade, index) => (
                       <motion.tr
                         key={index}
                         initial={{ opacity: 0, y: 20 }}
@@ -453,21 +814,95 @@ const ApartmentTradesPage: React.FC = () => {
                           {formatPrice(trade.pricePerPyeong)}/평
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => handleViewProperty(trade)}
-                            className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
-                            title="네이버 부동산에서 매물 보기"
-                          >
-                            <FiExternalLink className="w-3 h-3 mr-1" />
-                            매물보기
-                          </motion.button>
+                          <div className="flex space-x-2 justify-center">
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => handleViewProperty(trade, 'A1')}
+                              className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+                              title="네이버 부동산에서 매매 매물 보기"
+                            >
+                              <FiExternalLink className="w-3 h-3 mr-1" />
+                              매매
+                            </motion.button>
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => handleViewProperty(trade, 'B1')}
+                              className="inline-flex items-center px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-md hover:bg-green-700 transition-colors"
+                              title="네이버 부동산에서 전세 매물 보기"
+                            >
+                              <FiExternalLink className="w-3 h-3 mr-1" />
+                              전세
+                            </motion.button>
+                          </div>
                         </td>
                       </motion.tr>
                     ))}
                   </tbody>
                 </table>
+                
+                {/* 페이징 */}
+                {totalPages > 1 && (
+                  <div className="px-6 py-4 border-t border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-700">
+                        총 {filteredAndSortedTrades.length}건 중 {(currentPage - 1) * itemsPerPage + 1}-
+                        {Math.min(currentPage * itemsPerPage, filteredAndSortedTrades.length)}건
+                      </div>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => setCurrentPage(1)}
+                          disabled={currentPage === 1}
+                          className="px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          처음
+                        </button>
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          disabled={currentPage === 1}
+                          className="px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          이전
+                        </button>
+                        
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+                          if (pageNum > totalPages) return null;
+                          
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => setCurrentPage(pageNum)}
+                              className={`px-3 py-1 text-sm font-medium rounded-md ${
+                                currentPage === pageNum
+                                  ? 'bg-blue-600 text-white'
+                                  : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+                        
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                          disabled={currentPage === totalPages}
+                          className="px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          다음
+                        </button>
+                        <button
+                          onClick={() => setCurrentPage(totalPages)}
+                          disabled={currentPage === totalPages}
+                          className="px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          마지막
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-center py-12">

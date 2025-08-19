@@ -110,7 +110,7 @@ const RealEstatesPage: React.FC = () => {
   const loadRegionCodes = async () => {
     try {
       const response = await getRegionCodes();
-      if (response.success) {
+      if (response.success && response.data) {
         setRegionCodes(response.data);
       }
     } catch (error) {
@@ -124,7 +124,7 @@ const RealEstatesPage: React.FC = () => {
     setLoading(true);
     try {
       const response = await getRecentTrades(selectedRegion);
-      if (response.success) {
+      if (response.success && response.data) {
         setRecentTrades(response.data);
       }
     } catch (error) {

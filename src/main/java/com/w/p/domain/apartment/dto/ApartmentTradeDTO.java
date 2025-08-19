@@ -1,4 +1,4 @@
-package com.w.p.dto.apartment;
+package com.w.p.domain.apartment.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -6,6 +6,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import java.util.List;
 
@@ -99,31 +102,20 @@ public class ApartmentTradeDTO {
         @JacksonXmlProperty(localName = "sggCd")
         private String sggCd;             // 시군구코드
 
-        // 거래 상세
-        @JacksonXmlProperty(localName = "buyerGbn")
-        private String buyerGbn;          // 매수자구분
+        @JacksonXmlProperty(localName = "sggNm")
+        private String sggNm;             // 시군구명
 
-        @JacksonXmlProperty(localName = "slerGbn")
-        private String slerGbn;           // 매도자구분
+        @JacksonXmlProperty(localName = "emdCd")
+        private String emdCd;             // 읍면동코드
 
-        @JacksonXmlProperty(localName = "dealingGbn")
-        private String dealingGbn;        // 거래구분
+        @JacksonXmlProperty(localName = "emdNm")
+        private String emdNm;             // 읍면동명
 
-        @JacksonXmlProperty(localName = "cdealType")
-        private String cdealType;         // 거래유형
+        @JacksonXmlProperty(localName = "lawdCd")
+        private String lawdCd;            // 법정동코드
 
-        @JacksonXmlProperty(localName = "cdealDay")
-        private String cdealDay;          // 해약일
-
-        // 기타 정보
-        @JacksonXmlProperty(localName = "estateAgentSggNm")
-        private String estateAgentSggNm;  // 중개사소재지
-
-        @JacksonXmlProperty(localName = "landLeaseholdGbn")
-        private String landLeaseholdGbn;  // 토지임대부구분
-
-        @JacksonXmlProperty(localName = "rgstDate")
-        private String rgstDate;          // 등록일자
+        @JacksonXmlProperty(localName = "lawdNm")
+        private String lawdNm;            // 법정동명
     }
 
     /**
@@ -132,26 +124,26 @@ public class ApartmentTradeDTO {
     @Getter
     @Setter
     public static class SearchRequest {
-        private String lawdCd;      // 지역코드 (법정동코드)
-        private String dealYmd;     // 계약월 (YYYYMM)
-        private int numOfRows = 10; // 한 페이지 결과 수
-        private int pageNo = 1;     // 페이지번호
+        private String lawdCd;        // 법정동코드
+        private String dealYmd;       // 거래년월
+        private int numOfRows = 10;   // 조회 건수
+        private int pageNo = 1;       // 페이지 번호
     }
 
     /**
-     * 프론트엔드용 간소화된 응답 DTO
+     * 간소화된 거래 정보 DTO
      */
     @Getter
     @Setter
     public static class SimpleTradeInfo {
-        private String apartmentName;   // 아파트명
-        private String dong;           // 법정동
-        private String jibun;          // 지번
-        private String dealAmount;     // 거래금액
-        private String exclusiveArea;  // 전용면적
-        private String floor;          // 층
-        private String buildYear;      // 건축년도
-        private String dealDate;       // 거래일자 (YYYY-MM-DD)
-        private String pricePerPyeong; // 평당 가격
+        private String apartmentName;     // 아파트명
+        private String dong;              // 동
+        private String jibun;             // 지번
+        private String dealAmount;        // 거래금액
+        private String exclusiveArea;     // 전용면적
+        private String floor;             // 층수
+        private String buildYear;         // 건축년도
+        private String dealDate;          // 거래일자
+        private String pricePerPyeong;    // 평당 가격
     }
 }
