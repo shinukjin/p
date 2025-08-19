@@ -49,6 +49,7 @@ out/
 **/application-local.properties
 **/application-dev.properties
 **/application-prod.properties
+**/application.properties
 
 # 로그 파일들
 *.log
@@ -70,3 +71,4 @@ logs/
 # 개인 설정 파일들
 config/local.json
 config/secrets.json
+.gitignore
