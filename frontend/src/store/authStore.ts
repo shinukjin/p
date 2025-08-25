@@ -5,6 +5,7 @@ import type { User } from '../types/auth';
 interface AuthState {
   user: User | null;
   token: string | null;
+  tokenExpiresAt: number | null; // 토큰 만료 시간 (Unix timestamp)
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -12,8 +13,9 @@ interface AuthState {
 interface AuthActions {
   setUser: (user: User) => void;
   setToken: (token: string) => void;
-  login: (user: User, token: string) => void;
-  loginAdmin: (adminInfo: User, token: string) => void;
+  setTokenExpiresAt: (expiresAt: number) => void;
+  login: (user: User, token: string, expiresAt: number) => void;
+  loginAdmin: (adminInfo: User, token: string, expiresAt: number) => void;
   logout: () => void;
   setLoading: (loading: boolean) => void;
 }
@@ -26,48 +28,60 @@ export const useAuthStore = create<AuthStore>()(
       // 초기 상태
       user: null,
       token: null,
+      tokenExpiresAt: null,
       isAuthenticated: false,
       isLoading: false,
 
       // 액션들
-      setUser: (user: User) => {
+      setUser: (user) => {
         set({ user, isAuthenticated: true });
       },
 
-      setToken: (token: string) => {
+      setToken: (token) => {
         set({ token });
         localStorage.setItem('token', token);
       },
 
-      login: (user: User, token: string) => {
+      setTokenExpiresAt: (expiresAt) => {
+        set({ tokenExpiresAt: expiresAt });
+        localStorage.setItem('tokenExpiresAt', expiresAt.toString());
+      },
+
+      login: (user, token, expiresAt) => {
         set({ 
           user, 
           token, 
+          tokenExpiresAt: expiresAt,
           isAuthenticated: true,
           isLoading: false 
         });
         localStorage.setItem('token', token);
+        localStorage.setItem('tokenExpiresAt', expiresAt.toString());
       },
 
       // 관리자 로그인용 (adminInfo 포함)
-      loginAdmin: (adminInfo: User, token: string) => {
+      loginAdmin: (adminInfo, token, expiresAt) => {
         set({ 
           user: adminInfo, 
           token, 
+          tokenExpiresAt: expiresAt,
           isAuthenticated: true,
           isLoading: false 
         });
         localStorage.setItem('token', token);
+        localStorage.setItem('tokenExpiresAt', expiresAt.toString());
       },
 
       logout: () => {
         set({ 
           user: null, 
           token: null, 
+          tokenExpiresAt: null,
           isAuthenticated: false,
           isLoading: false 
         });
         localStorage.removeItem('token');
+        localStorage.removeItem('tokenExpiresAt');
       },
 
       setLoading: (isLoading: boolean) => {
@@ -80,6 +94,7 @@ export const useAuthStore = create<AuthStore>()(
       partialize: (state) => ({
         user: state.user,
         token: state.token,
+        tokenExpiresAt: state.tokenExpiresAt,
         isAuthenticated: state.isAuthenticated,
       }),
     }

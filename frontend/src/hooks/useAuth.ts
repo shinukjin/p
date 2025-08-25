@@ -22,7 +22,8 @@ export const useLogin = () => {
           username: 'user', // 실제로는 JWT 디코딩해서 가져와야 함
         };
         
-        setAuthData(user, response.data.token);
+        // 서버에서 받은 만료 시간 정보 사용
+        setAuthData(user, response.data.token, response.data.expiresAt);
         toast.success(response.message || '로그인 성공!');
         navigate('/dashboard');
       }
@@ -73,6 +74,30 @@ export const useLogout = () => {
     logout();
     queryClient.clear();
     toast.success('로그아웃되었습니다.');
+    navigate('/login');
+  };
+};
+
+// 토큰 만료로 인한 자동 로그아웃 훅
+export const useAutoLogout = () => {
+  const { logout } = useAuthStore();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  return (reason: 'expired' | 'invalid' | 'unauthorized' = 'expired') => {
+    logout();
+    queryClient.clear();
+    
+    let message = '로그아웃되었습니다.';
+    if (reason === 'expired') {
+      message = '토큰이 만료되어 자동으로 로그아웃되었습니다.';
+    } else if (reason === 'invalid') {
+      message = '유효하지 않은 토큰으로 인해 로그아웃되었습니다.';
+    } else if (reason === 'unauthorized') {
+      message = '인증이 필요하여 로그아웃되었습니다.';
+    }
+    
+    toast.success(message);
     navigate('/login');
   };
 };

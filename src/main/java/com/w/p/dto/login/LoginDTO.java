@@ -23,13 +23,16 @@ public class LoginDTO {
      * jwt 토큰, 만료시간 전달
      * 
      */
-
-     @Getter
+    @Getter
     public static class LoginResponse{
         private String token;
+        private long expiresAt; // 토큰 만료 시간 (Unix timestamp)
+        private long expiresIn; // 토큰 만료까지 남은 시간 (초)
 
-        public LoginResponse(String token){
+        public LoginResponse(String token, long expiresAt, long expiresIn){
             this.token = token;
+            this.expiresAt = expiresAt;
+            this.expiresIn = expiresIn;
         }
     }
 }

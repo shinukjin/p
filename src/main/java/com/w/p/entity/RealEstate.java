@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -40,22 +39,22 @@ public class RealEstate {
     private String detailAddress; // 상세 주소
 
     @Column
-    private BigDecimal latitude; // 위도 (네이버 지도 API용)
+    private Double latitude; // 위도 (네이버 지도 API용)
 
     @Column
-    private BigDecimal longitude; // 경도 (네이버 지도 API용)
+    private Double longitude; // 경도 (네이버 지도 API용)
 
     @Column
-    private BigDecimal price; // 가격 (매매가/전세가)
+    private Long price; // 가격 (매매가/전세가) - 원 단위
 
     @Column
-    private BigDecimal monthlyRent; // 월세 (전세/월세인 경우)
+    private Long monthlyRent; // 월세 (전세/월세인 경우) - 원 단위
 
     @Column
-    private BigDecimal deposit; // 보증금
+    private Long deposit; // 보증금 - 원 단위
 
     @Column
-    private BigDecimal area; // 면적 (평수)
+    private Double area; // 면적 (평수)
 
     @Column
     private Integer rooms; // 방 개수

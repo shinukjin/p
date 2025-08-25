@@ -15,6 +15,7 @@ import {
   FiStar
 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
+import MainLayout from '../components/layout/MainLayout';
 
 // 임시 데이터
 const mockWeddingHalls = [
@@ -69,77 +70,77 @@ const WeddingHallsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Link to="/dashboard" className="text-gray-500 hover:text-gray-700 mr-4">
-                ← 대시보드
-              </Link>
-              <FiHeart className="w-8 h-8 text-pink-600 mr-3" />
-              <h1 className="text-xl font-semibold text-gray-900">결혼식장 관리</h1>
-            </div>
-            
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="btn-primary flex items-center"
-            >
-              <FiPlus className="w-4 h-4 mr-2" />
-              새 식장 등록
-            </motion.button>
-          </div>
+    <MainLayout 
+      title="결혼식장 관리"
+      breadcrumbs={[{ name: '결혼식장' }]}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        {/* 상단 액션 버튼 */}
+        <div className="flex justify-between items-center mb-6">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="btn-primary flex items-center"
+          >
+            <FiPlus className="w-4 h-4 mr-2" />
+            새 식장 등록
+          </motion.button>
         </div>
-      </header>
 
-      {/* 메인 콘텐츠 */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 검색 및 필터 */}
         <div className="card p-6 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="식장명 또는 주소로 검색..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="input pl-10"
-              />
+            {/* 검색 */}
+            <div className="flex-1">
+              <div className="relative">
+                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="식장명 또는 주소로 검색..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
             </div>
-            
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="btn-secondary flex items-center"
-            >
-              <FiFilter className="w-4 h-4 mr-2" />
-              필터
-            </button>
+
+            {/* 필터 */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <FiFilter className="w-4 h-4 mr-2" />
+                필터
+              </button>
+            </div>
           </div>
 
+          {/* 필터 옵션 */}
           {showFilters && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
               className="mt-4 pt-4 border-t border-gray-200"
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    홀 타입
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">식장 유형</label>
                   <select
                     value={selectedHallType}
                     onChange={(e) => setSelectedHallType(e.target.value)}
-                    className="input"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
                     <option value="">전체</option>
                     <option value="호텔">호텔</option>
-                    <option value="컨벤션">컨벤션</option>
                     <option value="하우스웨딩">하우스웨딩</option>
-                    <option value="레스토랑">레스토랑</option>
+                    <option value="웨딩홀">웨딩홀</option>
+                    <option value="가든">가든</option>
                   </select>
                 </div>
               </div>
@@ -148,16 +149,14 @@ const WeddingHallsPage: React.FC = () => {
         </div>
 
         {/* 식장 목록 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredHalls.map((hall, index) => (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {filteredHalls.map((hall) => (
             <motion.div
               key={hall.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
               className="card overflow-hidden hover:shadow-lg transition-shadow"
             >
-              {/* 이미지 */}
               <div className="relative">
                 <img
                   src={hall.imageUrl}
@@ -167,75 +166,74 @@ const WeddingHallsPage: React.FC = () => {
                 <button
                   onClick={() => toggleBookmark(hall.id)}
                   className={`absolute top-3 right-3 p-2 rounded-full ${
-                    hall.isBookmarked 
-                      ? 'bg-pink-500 text-white' 
+                    hall.isBookmarked
+                      ? 'bg-pink-500 text-white'
                       : 'bg-white text-gray-400 hover:text-pink-500'
                   } transition-colors`}
                 >
-                  <FiHeart className={`w-4 h-4 ${hall.isBookmarked ? 'fill-current' : ''}`} />
+                  <FiHeart className={`w-5 h-5 ${hall.isBookmarked ? 'fill-current' : ''}`} />
                 </button>
+                <div className="absolute top-3 left-3 bg-white px-2 py-1 rounded-full text-sm font-medium text-gray-700">
+                  {hall.hallType}
+                </div>
               </div>
 
-              {/* 내용 */}
               <div className="p-6">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">{hall.name}</h3>
-                  {hall.rating && (
-                    <div className="flex items-center text-yellow-500">
-                      <FiStar className="w-4 h-4 fill-current" />
-                      <span className="text-sm ml-1">{hall.rating}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-2 text-sm text-gray-600 mb-4">
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="text-xl font-semibold text-gray-900">{hall.name}</h3>
                   <div className="flex items-center">
-                    <FiMapPin className="w-4 h-4 mr-2" />
-                    {hall.address}
-                  </div>
-                  
-                  {hall.phone && (
-                    <div className="flex items-center">
-                      <FiPhone className="w-4 h-4 mr-2" />
-                      {hall.phone}
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <FiUsers className="w-4 h-4 mr-2" />
-                      {hall.capacity}명
-                    </div>
-                    <div className="flex items-center">
-                      <FiDollarSign className="w-4 h-4 mr-1" />
-                      {hall.pricePerTable?.toLocaleString()}원/테이블
-                    </div>
+                    <FiStar className="w-5 h-5 text-yellow-400 fill-current mr-1" />
+                    <span className="text-sm font-medium text-gray-700">{hall.rating}</span>
                   </div>
                 </div>
+
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-gray-600">
+                    <FiMapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="text-sm">{hall.address}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <FiPhone className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="text-sm">{hall.phone}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <FiUsers className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="text-sm">최대 {hall.capacity}명</span>
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <FiDollarSign className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="text-sm">테이블당 {hall.pricePerTable.toLocaleString()}원</span>
+                  </div>
+                </div>
+
+                <p className="text-gray-600 text-sm mb-4">{hall.description}</p>
 
                 {hall.memo && (
-                  <div className="bg-yellow-50 p-3 rounded-lg mb-4">
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-4">
                     <p className="text-sm text-yellow-800">{hall.memo}</p>
                   </div>
                 )}
 
-                {/* 액션 버튼들 */}
-                <div className="flex space-x-2">
-                  <button className="flex-1 btn-secondary text-sm py-2">
-                    <FiEdit className="w-4 h-4 mr-1" />
-                    수정
-                  </button>
-                  <button className="btn-secondary text-red-600 hover:bg-red-50 p-2">
-                    <FiTrash2 className="w-4 h-4" />
-                  </button>
+                <div className="flex justify-between items-center">
+                  <div className="flex space-x-2">
+                    <button className="btn-secondary flex items-center text-sm">
+                      <FiEdit className="w-4 h-4 mr-1" />
+                      수정
+                    </button>
+                    <button className="btn-danger flex items-center text-sm">
+                      <FiTrash2 className="w-4 h-4 mr-1" />
+                      삭제
+                    </button>
+                  </div>
                   {hall.website && (
                     <a
                       href={hall.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="btn-secondary p-2"
+                      className="flex items-center text-primary-600 hover:text-primary-700 text-sm"
                     >
-                      <FiGlobe className="w-4 h-4" />
+                      <FiGlobe className="w-4 h-4 mr-1" />
+                      웹사이트
                     </a>
                   )}
                 </div>
@@ -255,8 +253,8 @@ const WeddingHallsPage: React.FC = () => {
             </button>
           </div>
         )}
-      </main>
-    </div>
+      </motion.div>
+    </MainLayout>
   );
 };
 

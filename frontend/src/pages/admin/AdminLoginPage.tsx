@@ -20,7 +20,8 @@ const AdminLoginPage: React.FC = () => {
     try {
       const response = await adminLogin({ username, password });
       if (response.success && response.data) {
-        loginAdmin(response.data.adminInfo, response.data.token);
+        // 서버에서 받은 만료 시간 정보 사용
+        loginAdmin(response.data.adminInfo, response.data.token, response.data.expiresAt);
         navigate('/admin/dashboard');
       } else {
         setError(response.message || '로그인에 실패했습니다.');
@@ -137,7 +138,7 @@ const AdminLoginPage: React.FC = () => {
           {/* 푸터 */}
           <div className="bg-gray-50 px-6 py-4 rounded-b-lg border-t border-gray-100">
             <p className="text-xs text-gray-500 text-center">
-              © 2024 관리자 시스템
+              © 2025 관리자 시스템
             </p>
           </div>
         </div>

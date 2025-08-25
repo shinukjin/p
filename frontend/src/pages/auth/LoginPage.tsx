@@ -179,7 +179,7 @@ const LoginPage: React.FC = () => {
           {/* 푸터 */}
           <div className="bg-gray-50 px-6 py-4 rounded-b-lg border-t border-gray-100">
             <p className="text-xs text-gray-500 text-center">
-              © 2024 부동산 포털
+              © 2025 부동산 포털
             </p>
           </div>
         </div>

@@ -68,6 +68,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/user/**").authenticated()
                 .requestMatchers("/api/v1/apartment/**").authenticated()
                 .requestMatchers("/api/v1/map/**").authenticated()
+                .requestMatchers("/api/v1/real-estates/**").authenticated()
                 
                 // 나머지는 모두 인증 필요
                 .anyRequest().authenticated()

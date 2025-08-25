@@ -21,10 +21,10 @@ class GlobalUtilTest {
 
     @Test
     void testFormatDealDate() {
-        assertEquals("2024-12-15", GlobalUtil.formatDealDate("2024", "12", "15"));
-        assertEquals("2024-01-01", GlobalUtil.formatDealDate("2024", "1", "1"));
-        assertEquals("", GlobalUtil.formatDealDate("2024", "13", "15")); // 잘못된 월
-        assertEquals("", GlobalUtil.formatDealDate("2024", "12", "32")); // 잘못된 일
+        assertEquals("2025-12-15", GlobalUtil.formatDealDate("2025", "12", "15"));
+        assertEquals("2025-01-01", GlobalUtil.formatDealDate("2025", "1", "1"));
+        assertEquals("", GlobalUtil.formatDealDate("2025", "13", "15")); // 잘못된 월
+        assertEquals("", GlobalUtil.formatDealDate("2025", "12", "32")); // 잘못된 일
         assertEquals("", GlobalUtil.formatDealDate(null, "12", "15"));
     }
 
@@ -63,9 +63,9 @@ class GlobalUtilTest {
 
     @Test
     void testIsValidDealYmd() {
-        assertTrue(GlobalUtil.isValidDealYmd("202412"));
-        assertFalse(GlobalUtil.isValidDealYmd("20241"));
-        assertFalse(GlobalUtil.isValidDealYmd("2024123"));
+        assertTrue(GlobalUtil.isValidDealYmd("202512"));
+        assertFalse(GlobalUtil.isValidDealYmd("20251"));
+        assertFalse(GlobalUtil.isValidDealYmd("2025123"));
         assertFalse(GlobalUtil.isValidDealYmd("abc"));
         assertFalse(GlobalUtil.isValidDealYmd(""));
         assertFalse(GlobalUtil.isValidDealYmd(null));

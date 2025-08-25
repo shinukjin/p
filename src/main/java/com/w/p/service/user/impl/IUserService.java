@@ -8,35 +8,37 @@ import org.springframework.stereotype.Service;
 
 import com.w.p.dto.user.UserDTO.*;
 import com.w.p.entity.User;
-import com.w.p.exception.BusinessException;
+import com.w.p.exception.UserException;
 import com.w.p.repository.UserRepository;
+import com.w.p.service.BaseService;
 import com.w.p.service.user.UserService;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
-public class IUserService implements UserService{
+public class IUserService extends BaseService implements UserService{
 
-    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    
+    public IUserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        super(userRepository);
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     public SignupResponse signup(Signup request) {
 
         if(userRepository.findByUsername(request.getUsername()).isPresent()){
-            throw BusinessException.userAlreadyExists(request.getUsername());
+            throw UserException.usernameExists(request.getUsername());
         }
 
         if(userRepository.findByEmail(request.getEmail()).isPresent()){
-            throw BusinessException.emailAlreadyExists(request.getEmail());
+            throw UserException.emailExists(request.getEmail());
         }
 
         User user = User.builder()
@@ -87,16 +89,13 @@ public class IUserService implements UserService{
 
     @Override
     public UserInfo getUserInfoForAdmin(Long userId) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> BusinessException.userNotFound(userId));
-        
+        User user = findUserById(userId);
         return convertToUserInfo(user);
     }
 
     @Override
     public void updateUserStatus(Long userId, String status) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> BusinessException.userNotFound(userId));
+        User user = findUserById(userId);
         
         try {
             User.UserStatus userStatus = User.UserStatus.valueOf(status.toUpperCase());
@@ -104,14 +103,13 @@ public class IUserService implements UserService{
             userRepository.save(user);
             log.info("사용자 {} 상태 변경: {}", userId, status);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException("유효하지 않은 상태값입니다: " + status);
+            throw UserException.invalidStatus(status);
         }
     }
 
     @Override
     public void updateUserRole(Long userId, String role) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> BusinessException.userNotFound(userId));
+        User user = findUserById(userId);
         
         try {
             User.UserRole userRole = User.UserRole.valueOf(role.toUpperCase());
@@ -119,14 +117,13 @@ public class IUserService implements UserService{
             userRepository.save(user);
             log.info("사용자 {} 역할 변경: {}", userId, role);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException("유효하지 않은 역할값입니다: " + role);
+            throw UserException.invalidRole(role);
         }
     }
 
     @Override
     public void unlockUser(Long userId) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> BusinessException.userNotFound(userId));
+        User user = findUserById(userId);
         
         user.setStatus(User.UserStatus.ACTIVE);
         userRepository.save(user);

@@ -1,199 +1,197 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import {
-  FiCamera,
-  FiPackage,
-  FiEdit3,
+import { 
+  FiCamera, 
+  FiPackage, 
+  FiEdit3, 
   FiMapPin, 
   FiPhone, 
   FiGlobe, 
-  FiDollarSign,
+  FiHeart,
   FiPlus,
   FiSearch,
   FiFilter,
-  FiEdit,
   FiTrash2,
-  FiStar,
-  FiHeart
+  FiStar
 } from 'react-icons/fi';
-import { Link } from 'react-router-dom';
-import { ServiceType, ServiceTypeLabels } from '../types/wedding';
+import MainLayout from '../components/layout/MainLayout';
 
 // 임시 데이터
 const mockWeddingServices = [
   {
     id: 1,
+    type: '스튜디오',
     name: '로맨틱 스튜디오',
-    serviceType: ServiceType.STUDIO,
-    address: '서울시 강남구 신사동 123',
+    address: '서울시 강남구 테헤란로 123',
     phone: '02-1234-5678',
-    website: 'https://romantic-studio.com',
-    price: 800000,
-    description: '감성적인 웨딩 촬영 전문 스튜디오입니다.',
+    website: 'https://romanticstudio.com',
+    price: 500000,
+    description: '자연스러운 분위기의 웨딩 스튜디오입니다.',
     imageUrl: 'https://via.placeholder.com/300x200',
     rating: 4.8,
-    portfolio: ['https://via.placeholder.com/150', 'https://via.placeholder.com/150'],
-    specialties: ['야외촬영', '한복촬영', '스냅촬영'],
     isBookmarked: true,
-    memo: '포트폴리오가 마음에 듦, 가격 협상 가능'
+    memo: '사전 예약 필수, 주말 할인 가능'
   },
   {
     id: 2,
-    name: '엘레간트 드레스',
-    serviceType: ServiceType.DRESS,
-    address: '서울시 서초구 반포동 456',
+    type: '드레스',
+    name: '엘레간트 드레스샵',
+    address: '서울시 서초구 반포대로 456',
     phone: '02-2345-6789',
-    price: 1200000,
-    description: '고급 웨딩드레스 전문 브랜드입니다.',
+    website: 'https://elegantdress.com',
+    price: 800000,
+    description: '고급스러운 웨딩드레스를 대여할 수 있습니다.',
     imageUrl: 'https://via.placeholder.com/300x200',
-    rating: 4.6,
-    specialties: ['맞춤제작', '빈티지', '모던'],
+    rating: 4.5,
     isBookmarked: false,
     memo: ''
   },
   {
     id: 3,
+    type: '메이크업',
     name: '뷰티 메이크업',
-    serviceType: ServiceType.MAKEUP,
-    address: '서울시 강남구 청담동 789',
+    address: '서울시 강남구 논현로 789',
     phone: '02-3456-7890',
+    website: 'https://beautymakeup.com',
     price: 300000,
-    description: '브라이덜 메이크업 전문가입니다.',
+    description: '자연스러운 웨딩 메이크업을 제공합니다.',
     imageUrl: 'https://via.placeholder.com/300x200',
     rating: 4.7,
-    specialties: ['자연스러운', '화려한', '한국적'],
     isBookmarked: true,
-    memo: '시연 예약 완료'
+    memo: '시술 시간 2시간, 추가 시술 가능'
   }
 ];
 
 const WeddingServicesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedServiceType, setSelectedServiceType] = useState<ServiceType | ''>('');
+  const [selectedServiceType, setSelectedServiceType] = useState('');
 
   const filteredServices = mockWeddingServices.filter(service => {
     const matchesSearch = service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          service.address.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = !selectedServiceType || service.serviceType === selectedServiceType;
+    const matchesType = !selectedServiceType || service.type === selectedServiceType;
     return matchesSearch && matchesType;
   });
 
-  const getServiceIcon = (type: ServiceType) => {
+  const toggleBookmark = (id: number) => {
+    // TODO: API 호출로 북마크 상태 변경
+    console.log('Toggle bookmark for service:', id);
+  };
+
+  const getServiceIcon = (type: string) => {
     switch (type) {
-      case ServiceType.STUDIO:
-        return <FiCamera className="w-5 h-5" />;
-      case ServiceType.DRESS:
-        return <FiPackage className="w-5 h-5" />;
-      case ServiceType.MAKEUP:
-        return <FiEdit3 className="w-5 h-5" />;
+      case '스튜디오':
+        return <FiCamera className="w-6 h-6" />;
+      case '드레스':
+        return <FiPackage className="w-6 h-6" />;
+      case '메이크업':
+        return <FiEdit3 className="w-6 h-6" />;
       default:
-        return <FiCamera className="w-5 h-5" />;
+        return <FiPackage className="w-6 h-6" />;
     }
   };
 
-  const getServiceColor = (type: ServiceType) => {
+  const getServiceColor = (type: string) => {
     switch (type) {
-      case ServiceType.STUDIO:
+      case '스튜디오':
         return 'bg-blue-100 text-blue-600';
-      case ServiceType.DRESS:
+      case '드레스':
         return 'bg-pink-100 text-pink-600';
-      case ServiceType.MAKEUP:
+      case '메이크업':
         return 'bg-purple-100 text-purple-600';
       default:
         return 'bg-gray-100 text-gray-600';
     }
   };
 
-  const toggleBookmark = (id: number) => {
-    console.log('Toggle bookmark for service:', id);
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Link to="/dashboard" className="text-gray-500 hover:text-gray-700 mr-4">
-                ← 대시보드
-              </Link>
-              <div className="flex items-center mr-3">
-                <FiCamera className="w-6 h-6 text-purple-600 mr-1" />
-                <FiPackage className="w-6 h-6 text-purple-600 mr-1" />
-                <FiEdit3 className="w-6 h-6 text-purple-600" />
-              </div>
-              <h1 className="text-xl font-semibold text-gray-900">스드메 관리</h1>
-            </div>
-            
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="btn-primary flex items-center"
-            >
-              <FiPlus className="w-4 h-4 mr-2" />
-              새 업체 등록
-            </motion.button>
-          </div>
-        </div>
-      </header>
-
-      {/* 메인 콘텐츠 */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 카테고리 탭 */}
-        <div className="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-lg w-fit">
-          <button
-            onClick={() => setSelectedServiceType('')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              selectedServiceType === '' 
-                ? 'bg-white text-gray-900 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
+    <MainLayout 
+      title="스드메 관리"
+      breadcrumbs={[{ name: '스드메' }]}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        {/* 상단 액션 버튼 */}
+        <div className="flex justify-between items-center mb-6">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="btn-primary flex items-center"
           >
-            전체
-          </button>
-          {Object.values(ServiceType).map((type) => (
-            <button
-              key={type}
-              onClick={() => setSelectedServiceType(type)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center ${
-                selectedServiceType === type 
-                  ? 'bg-white text-gray-900 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <span className="mr-2">{getServiceIcon(type)}</span>
-              {ServiceTypeLabels[type]}
-            </button>
-          ))}
+            <FiPlus className="w-4 h-4 mr-2" />
+            새 서비스 등록
+          </motion.button>
         </div>
 
-        {/* 검색 */}
+        {/* 검색 및 필터 */}
         <div className="card p-6 mb-6">
-          <div className="relative">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="업체명 또는 주소로 검색..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="input pl-10"
-            />
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* 검색 */}
+            <div className="flex-1">
+              <div className="relative">
+                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="서비스명 또는 주소로 검색..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {/* 필터 */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <FiFilter className="w-4 h-4 mr-2" />
+                필터
+              </button>
+            </div>
           </div>
+
+          {/* 필터 옵션 */}
+          {showFilters && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-4 pt-4 border-t border-gray-200"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">서비스 유형</label>
+                  <select
+                    value={selectedServiceType}
+                    onChange={(e) => setSelectedServiceType(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  >
+                    <option value="">전체</option>
+                    <option value="스튜디오">스튜디오</option>
+                    <option value="드레스">드레스</option>
+                    <option value="메이크업">메이크업</option>
+                  </select>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </div>
 
         {/* 서비스 목록 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredServices.map((service, index) => (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {filteredServices.map((service) => (
             <motion.div
               key={service.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
               className="card overflow-hidden hover:shadow-lg transition-shadow"
             >
-              {/* 이미지 */}
               <div className="relative">
                 <img
                   src={service.imageUrl}
@@ -203,93 +201,75 @@ const WeddingServicesPage: React.FC = () => {
                 <button
                   onClick={() => toggleBookmark(service.id)}
                   className={`absolute top-3 right-3 p-2 rounded-full ${
-                    service.isBookmarked 
-                      ? 'bg-pink-500 text-white' 
+                    service.isBookmarked
+                      ? 'bg-pink-500 text-white'
                       : 'bg-white text-gray-400 hover:text-pink-500'
                   } transition-colors`}
                 >
-                  <FiHeart className={`w-4 h-4 ${service.isBookmarked ? 'fill-current' : ''}`} />
+                  <FiHeart className={`w-5 h-5 ${service.isBookmarked ? 'fill-current' : ''}`} />
                 </button>
-                
-                {/* 서비스 타입 배지 */}
-                <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-medium ${getServiceColor(service.serviceType)}`}>
-                  <span className="flex items-center">
-                    {getServiceIcon(service.serviceType)}
-                    <span className="ml-1">{ServiceTypeLabels[service.serviceType]}</span>
-                  </span>
+                <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-sm font-medium ${getServiceColor(service.type)}`}>
+                  {service.type}
                 </div>
               </div>
 
-              {/* 내용 */}
               <div className="p-6">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">{service.name}</h3>
-                  {service.rating && (
-                    <div className="flex items-center text-yellow-500">
-                      <FiStar className="w-4 h-4 fill-current" />
-                      <span className="text-sm ml-1">{service.rating}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-2 text-sm text-gray-600 mb-4">
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="text-xl font-semibold text-gray-900">{service.name}</h3>
                   <div className="flex items-center">
-                    <FiMapPin className="w-4 h-4 mr-2" />
-                    {service.address}
-                  </div>
-                  
-                  {service.phone && (
-                    <div className="flex items-center">
-                      <FiPhone className="w-4 h-4 mr-2" />
-                      {service.phone}
-                    </div>
-                  )}
-
-                  <div className="flex items-center">
-                    <FiDollarSign className="w-4 h-4 mr-2" />
-                    {service.price?.toLocaleString()}원
+                    <FiStar className="w-5 h-5 text-yellow-400 fill-current mr-1" />
+                    <span className="text-sm font-medium text-gray-700">{service.rating}</span>
                   </div>
                 </div>
 
-                {/* 전문 분야 */}
-                {service.specialties && service.specialties.length > 0 && (
-                  <div className="mb-4">
-                    <div className="flex flex-wrap gap-1">
-                      {service.specialties.map((specialty, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
-                        >
-                          {specialty}
-                        </span>
-                      ))}
-                    </div>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-gray-600">
+                    <FiMapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="text-sm">{service.address}</span>
                   </div>
-                )}
+                  <div className="flex items-center text-gray-600">
+                    <FiPhone className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="text-sm">{service.phone}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <div className={`w-4 h-4 mr-2 flex-shrink-0 ${getServiceColor(service.type)} rounded-full flex items-center justify-center`}>
+                      {getServiceIcon(service.type)}
+                    </div>
+                    <span className="text-sm">{service.type}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <span className="text-sm font-medium">가격: {service.price.toLocaleString()}원</span>
+                  </div>
+                </div>
+
+                <p className="text-gray-600 text-sm mb-4">{service.description}</p>
 
                 {service.memo && (
-                  <div className="bg-yellow-50 p-3 rounded-lg mb-4">
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-4">
                     <p className="text-sm text-yellow-800">{service.memo}</p>
                   </div>
                 )}
 
-                {/* 액션 버튼들 */}
-                <div className="flex space-x-2">
-                  <button className="flex-1 btn-secondary text-sm py-2">
-                    <FiEdit className="w-4 h-4 mr-1" />
-                    수정
-                  </button>
-                  <button className="btn-secondary text-red-600 hover:bg-red-50 p-2">
-                    <FiTrash2 className="w-4 h-4" />
-                  </button>
+                <div className="flex justify-between items-center">
+                  <div className="flex space-x-2">
+                    <button className="btn-secondary flex items-center text-sm">
+                      <FiEdit3 className="w-4 h-4 mr-1" />
+                      수정
+                    </button>
+                    <button className="btn-danger flex items-center text-sm">
+                      <FiTrash2 className="w-4 h-4 mr-1" />
+                      삭제
+                    </button>
+                  </div>
                   {service.website && (
                     <a
                       href={service.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="btn-secondary p-2"
+                      className="flex items-center text-primary-600 hover:text-primary-700 text-sm"
                     >
-                      <FiGlobe className="w-4 h-4" />
+                      <FiGlobe className="w-4 h-4 mr-1" />
+                      웹사이트
                     </a>
                   )}
                 </div>
@@ -301,20 +281,20 @@ const WeddingServicesPage: React.FC = () => {
         {filteredServices.length === 0 && (
           <div className="text-center py-12">
             <div className="flex justify-center mb-4">
-              <FiCamera className="w-8 h-8 text-gray-300 mr-2" />
-              <FiPackage className="w-8 h-8 text-gray-300 mr-2" />
-              <FiEdit3 className="w-8 h-8 text-gray-300" />
+              <FiCamera className="w-16 h-16 text-gray-300" />
+              <FiPackage className="w-16 h-16 text-gray-300 -ml-8" />
+              <FiEdit3 className="w-16 h-16 text-gray-300 -ml-8" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">등록된 업체가 없습니다</h3>
-            <p className="text-gray-600 mb-4">첫 번째 스드메 업체를 등록해보세요!</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">등록된 서비스가 없습니다</h3>
+            <p className="text-gray-600 mb-4">첫 번째 스드메 서비스를 등록해보세요!</p>
             <button className="btn-primary">
               <FiPlus className="w-4 h-4 mr-2" />
-              업체 등록하기
+              서비스 등록하기
             </button>
           </div>
         )}
-      </main>
-    </div>
+      </motion.div>
+    </MainLayout>
   );
 };
 

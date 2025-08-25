@@ -51,7 +51,7 @@ import com.w.p.common.util.GlobalUtil;
 String formattedAmount = GlobalUtil.formatDealAmount("85,000"); // "85,000,000"
 
 // 거래일자 포맷팅
-String formattedDate = GlobalUtil.formatDealDate("2024", "12", "15"); // "2024-12-15"
+String formattedDate = GlobalUtil.formatDealDate("2025", "12", "15"); // "2025-12-15"
 
 // 평당 가격 계산
 String pricePerPyeong = GlobalUtil.calculatePricePerPyeong("100,000", "30.25"); // "1,000,000"

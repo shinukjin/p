@@ -3,11 +3,12 @@ package com.w.p.service.admin.impl;
 import com.w.p.common.util.GlobalUtil;
 import com.w.p.dto.admin.AdminDTO;
 import com.w.p.entity.User;
+import com.w.p.exception.AdminException;
 import com.w.p.repository.UserRepository;
 import com.w.p.repository.WeddingHallRepository;
+import com.w.p.service.BaseService;
 import com.w.p.service.admin.AdminService;
 import com.w.p.component.jwt.JwtTokenProvider;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,61 +25,66 @@ import java.util.stream.Collectors;
  * 관리자 서비스 구현체
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class AdminServiceImpl implements AdminService {
+public class IAdminService extends BaseService implements AdminService {
 
-    private final UserRepository userRepository;
     private final WeddingHallRepository weddingHallRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    
+    public IAdminService(UserRepository userRepository, WeddingHallRepository weddingHallRepository, 
+                         PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider) {
+        super(userRepository);
+        this.weddingHallRepository = weddingHallRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtTokenProvider = jwtTokenProvider;
+    }
 
     @Override
     public AdminDTO.LoginResponse login(AdminDTO.LoginRequest request) {
         log.info("관리자 로그인 시도: {}", GlobalUtil.maskPassword(request.getUsername()));
 
-        User admin = userRepository.findByUsername(request.getUsername())
-            .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
+        User admin = findUserByUsername(request.getUsername());
 
         // 관리자 권한 확인
         if (!isAdminRole(admin.getRole())) {
-            throw new RuntimeException("관리자 권한이 없습니다.");
+            throw AdminException.accessDenied();
         }
 
         // 비밀번호 확인
         if (!passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
-            throw new RuntimeException("비밀번호가 일치하지 않습니다.");
+            throw AdminException.passwordMismatch();
         }
 
         // 상태 확인
         if (admin.getStatus() != User.UserStatus.ACTIVE) {
-            throw new RuntimeException("비활성화된 계정입니다.");
+            throw AdminException.accessDenied();
         }
 
         // 마지막 로그인 시간 업데이트
         updateLastLoginTime(admin.getId());
 
-        // JWT 토큰 생성
-        String token = jwtTokenProvider.generateToken(admin);
-
-        log.info("관리자 로그인 성공: {}", GlobalUtil.maskPassword(admin.getUsername()));
+        // JWT 토큰과 만료 시간 정보 생성
+        var tokenInfo = jwtTokenProvider.createTokenWithExpiration(
+            admin.getId(), admin.getUsername(), admin.getRole().name()
+        );
+        
+        log.info("관리자 로그인 성공: {} (토큰 만료: {})", 
+            GlobalUtil.maskPassword(admin.getUsername()), tokenInfo.getExpiresAtDate());
 
         return AdminDTO.LoginResponse.builder()
-            .token(token)
+            .token(tokenInfo.getToken())
             .adminInfo(convertToAdminInfo(admin))
+            .expiresAt(tokenInfo.getExpiresAt())
+            .expiresIn(tokenInfo.getExpiresIn())
             .build();
     }
 
     @Override
     public AdminDTO.AdminInfo getAdminInfo(Long adminId) {
-        User admin = userRepository.findById(adminId)
-            .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
-
-        if (!isAdminRole(admin.getRole())) {
-            throw new RuntimeException("관리자 권한이 없습니다.");
-        }
-
+        User admin = findUserById(adminId);
+        validateAdminRole(admin);
         return convertToAdminInfo(admin);
     }
 
@@ -88,11 +94,11 @@ public class AdminServiceImpl implements AdminService {
 
         // 중복 확인
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            throw new RuntimeException("이미 존재하는 사용자명입니다.");
+            throw AdminException.usernameExists(request.getUsername());
         }
 
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("이미 존재하는 이메일입니다.");
+            throw AdminException.emailExists(request.getEmail());
         }
 
         User admin = User.builder()
@@ -115,17 +121,13 @@ public class AdminServiceImpl implements AdminService {
     public AdminDTO.AdminInfo updateAdmin(Long adminId, AdminDTO.UpdateRequest request) {
         log.info("관리자 정보 수정 요청: {}", adminId);
 
-        User admin = userRepository.findById(adminId)
-            .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
-
-        if (!isAdminRole(admin.getRole())) {
-            throw new RuntimeException("관리자 권한이 없습니다.");
-        }
+        User admin = findUserById(adminId);
+        validateAdminRole(admin);
 
         // 이메일 중복 확인 (자신 제외)
         if (!admin.getEmail().equals(request.getEmail()) && 
             userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("이미 존재하는 이메일입니다.");
+            throw AdminException.emailExists(request.getEmail());
         }
 
         admin.setName(request.getName());
@@ -144,17 +146,16 @@ public class AdminServiceImpl implements AdminService {
     public void changePassword(Long adminId, AdminDTO.ChangePasswordRequest request) {
         log.info("관리자 비밀번호 변경 요청: {}", adminId);
 
-        User admin = userRepository.findById(adminId)
-            .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
+        User admin = findUserById(adminId);
 
         // 현재 비밀번호 확인
         if (!passwordEncoder.matches(request.getCurrentPassword(), admin.getPassword())) {
-            throw new RuntimeException("현재 비밀번호가 일치하지 않습니다.");
+            throw AdminException.passwordMismatch();
         }
 
         // 새 비밀번호 확인
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new RuntimeException("새 비밀번호가 일치하지 않습니다.");
+            throw AdminException.newPasswordMismatch();
         }
 
         admin.setPassword(passwordEncoder.encode(request.getNewPassword()));
@@ -167,9 +168,7 @@ public class AdminServiceImpl implements AdminService {
     public void updateAdminStatus(Long adminId, String status) {
         log.info("관리자 상태 변경 요청: {} -> {}", adminId, status);
 
-        User admin = userRepository.findById(adminId)
-            .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
-
+        User admin = findUserById(adminId);
         admin.setStatus(User.UserStatus.valueOf(status.toUpperCase()));
         userRepository.save(admin);
 
@@ -205,12 +204,8 @@ public class AdminServiceImpl implements AdminService {
     public void deleteAdmin(Long adminId) {
         log.info("관리자 삭제 요청: {}", adminId);
 
-        User admin = userRepository.findById(adminId)
-            .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
-
-        if (!isAdminRole(admin.getRole())) {
-            throw new RuntimeException("관리자 권한이 없습니다.");
-        }
+        User admin = findUserById(adminId);
+        validateAdminRole(admin);
 
         userRepository.delete(admin);
         log.info("관리자 삭제 완료: {}", adminId);
@@ -243,9 +238,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public void updateLastLoginTime(Long adminId) {
-        User admin = userRepository.findById(adminId)
-            .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
-
+        User admin = findUserById(adminId);
         admin.setLastLoginAt(LocalDateTime.now());
         userRepository.save(admin);
     }
@@ -257,6 +250,15 @@ public class AdminServiceImpl implements AdminService {
         return role == User.UserRole.SUPER_ADMIN || 
                role == User.UserRole.ADMIN || 
                role == User.UserRole.OPERATOR;
+    }
+    
+    /**
+     * 관리자 권한 검증
+     */
+    private void validateAdminRole(User user) {
+        if (!isAdminRole(user.getRole())) {
+            throw AdminException.accessDenied();
+        }
     }
 
     /**

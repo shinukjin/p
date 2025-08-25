@@ -234,7 +234,7 @@ public class ApartmentApiServiceImpl implements ApartmentApiService {
         item1.setExcluUseAr("84.93");
         item1.setFloor("10");
         item1.setBuildYear("2018");
-        item1.setDealYear("2024");
+        item1.setDealYear("2025");
         item1.setDealMonth("12");
         item1.setDealDay("15");
 
@@ -246,7 +246,7 @@ public class ApartmentApiServiceImpl implements ApartmentApiService {
         item2.setExcluUseAr("99.12");
         item2.setFloor("15");
         item2.setBuildYear("2020");
-        item2.setDealYear("2024");
+        item2.setDealYear("2025");
         item2.setDealMonth("12");
         item2.setDealDay("10");
         

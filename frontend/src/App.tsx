@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
+import { checkEnvVariables } from './utils/envCheck';
 import LoginPage from './pages/auth/LoginPage';
 import SignupPage from './pages/auth/SignupPage';
 import DashboardPage from './pages/DashboardPage';
@@ -35,6 +36,13 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 function App() {
+  // 개발 모드에서 환경변수 확인
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      checkEnvVariables();
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <Router>

@@ -19,6 +19,8 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
+  expiresAt: number; // 토큰 만료 시간 (Unix timestamp)
+  expiresIn: number; // 토큰 만료까지 남은 시간 (초)
 }
 
 export interface SignupRequest {
@@ -44,6 +46,8 @@ export interface SignupResponse {
 export interface AdminLoginResponse {
   token: string;
   adminInfo: User;
+  expiresAt: number; // 토큰 만료 시간 (Unix timestamp)
+  expiresIn: number; // 토큰 만료까지 남은 시간 (초)
 }
 
 export interface ApiResponse<T> {

@@ -27,7 +27,7 @@ public class ApartmentController {
      * 아파트 매매 실거래가 조회
      * 
      * @param lawdCd 법정동코드 (예: 11680)
-     * @param dealYmd 거래년월 (예: 202412)
+     * @param dealYmd 거래년월 (예: 202512)
      * @param numOfRows 조회 건수 (기본값: 10)
      * @param pageNo 페이지 번호 (기본값: 1)
      * @return 실거래가 목록
@@ -133,25 +133,25 @@ public class ApartmentController {
             new RegionCode("41173", "안양시 동안구"),
             new RegionCode("41185", "과천시"),
             new RegionCode("41210", "의왕시"),
-            new RegionCode("41220", "하남시"),
+            new RegionCode("41450", "하남시"),
             new RegionCode("41250", "용인시 기흥구"),
             new RegionCode("41271", "용인시 수지구"),
             new RegionCode("41281", "용인시 처인구"),
             new RegionCode("41290", "파주시"),
-            new RegionCode("41310", "김포시"),
+            new RegionCode("41570", "김포시"),
             new RegionCode("41360", "광주시"),
-            new RegionCode("41370", "여주시"),
-            new RegionCode("41410", "오산시"),
+            new RegionCode("41670", "여주시"),
+            new RegionCode("41370", "오산시"),
             new RegionCode("41430", "시흥시"),
-            new RegionCode("41450", "군포시"),
+            new RegionCode("41410", "군포시"),
             new RegionCode("41460", "의정부시"),
             new RegionCode("41480", "남양주시"),
             new RegionCode("41500", "고양시 덕양구"),
             new RegionCode("41590", "고양시 일산동구"),
             new RegionCode("41610", "고양시 일산서구"),
             new RegionCode("41630", "양주시"),
-            new RegionCode("41650", "구리시"),
-            new RegionCode("41670", "포천시"),
+            new RegionCode("41310", "구리시"),
+            new RegionCode("41650", "포천시"),
             new RegionCode("41690", "연천군"),
             new RegionCode("41800", "가평군"),
             new RegionCode("41820", "양평군"),
@@ -159,8 +159,8 @@ public class ApartmentController {
             // 부천시 및 인근 지역
             new RegionCode("41190", "부천시"),
             new RegionCode("41192", "부천시 원미구"),
-            new RegionCode("41195", "부천시 소사구"),
-            new RegionCode("41199", "부천시 오정구"),
+            new RegionCode("41194", "부천시 소사구"),
+            new RegionCode("41196", "부천시 오정구"),
             
             // 인천시 (부천 근처)
             new RegionCode("28110", "인천시 중구"),
@@ -182,8 +182,8 @@ public class ApartmentController {
             // 수원시 (안양 근처)
             new RegionCode("41110", "수원시 장안구"),
             new RegionCode("41113", "수원시 권선구"),
-            new RegionCode("41117", "수원시 팔달구"),
-            new RegionCode("41131", "수원시 영통구"),
+            new RegionCode("41115", "수원시 팔달구"),
+            new RegionCode("41117", "수원시 영통구"),
             
             // 평택시 (안양 근처)
             new RegionCode("41220", "평택시"),

@@ -34,6 +34,8 @@ public class AdminDTO {
     public static class LoginResponse {
         private String token;
         private AdminInfo adminInfo;
+        private long expiresAt; // 토큰 만료 시간 (Unix timestamp)
+        private long expiresIn; // 토큰 만료까지 남은 시간 (초)
     }
 
     /**

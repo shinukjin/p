@@ -55,6 +55,33 @@ public class JwtTokenProvider {
             .compact();
     }
 
+    /**
+     * 토큰 만료 시간 정보를 포함한 응답 객체 생성
+     */
+    public TokenInfo createTokenWithExpiration(Long id, String username, String role) {
+        Date now = new Date();
+        Date expired = new Date(now.getTime() + expiration);
+        
+        Claims claims = Jwts.claims().setSubject(username);
+        claims.put("id", id);
+        claims.put("role", role);
+
+        String token = Jwts.builder()
+            .setClaims(claims)
+            .setIssuedAt(now)
+            .setExpiration(expired)
+            .signWith(Keys.hmacShaKeyFor(scretKey.getBytes()), SignatureAlgorithm.HS256)
+            .compact();
+
+        return TokenInfo.builder()
+            .token(token)
+            .expiresAt(expired.getTime() / 1000)
+            .expiresIn(expiration / 1000)
+            .issuedAt(now)
+            .expiresAtDate(expired)
+            .build();
+    }
+
     public Claims getClaims(String token){
         return Jwts.parserBuilder()
             .setSigningKey(scretKey.getBytes())

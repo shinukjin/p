@@ -2,7 +2,7 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
 // API 기본 설정
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
 
 // Axios 인스턴스 생성
 export const apiClient = axios.create({
@@ -48,7 +48,15 @@ apiClient.interceptors.response.use(
         case 401:
           // 인증 실패 - 토큰 제거 및 로그인 페이지로 리다이렉트
           localStorage.removeItem('token');
-          toast.error('로그인이 필요합니다.');
+          
+          // 토큰 만료인지 확인
+          if (data?.message?.includes('expired') || data?.message?.includes('만료')) {
+            toast.success('토큰이 만료되어 자동으로 로그아웃되었습니다.');
+          } else {
+            toast.error('로그인이 필요합니다.');
+          }
+          
+          // 로그인 페이지로 리다이렉트
           window.location.href = '/login';
           break;
           
