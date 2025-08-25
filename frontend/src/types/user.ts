@@ -6,6 +6,7 @@ export interface User {
   phone?: string;
   role: string;
   status: string;
+  totalBudget?: number; // 총 사용가능 예산
   lastLoginAt?: string;
   createdAt: string;
 }

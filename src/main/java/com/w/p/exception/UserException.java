@@ -45,4 +45,8 @@ public class UserException extends RuntimeException {
     public static UserException accountInactive() {
         return new UserException("비활성화된 계정입니다.");
     }
+    
+    public static UserException unauthorized() {
+        return new UserException("인증이 필요합니다.");
+    }
 }

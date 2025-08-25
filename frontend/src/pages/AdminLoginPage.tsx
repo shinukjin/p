@@ -20,7 +20,7 @@ const AdminLoginPage: React.FC = () => {
       const response = await adminLogin({ username, password });
       
       if (response.success && response.data) {
-        loginAdmin(response.data.adminInfo, response.data.token);
+        loginAdmin(response.data.adminInfo, response.data.token, response.data.expiresAt);
         navigate('/admin/dashboard');
       } else {
         setError(response.message || '로그인에 실패했습니다.');

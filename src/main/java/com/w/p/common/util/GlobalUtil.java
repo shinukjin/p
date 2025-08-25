@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.regex.Pattern;
 
@@ -24,6 +25,10 @@ public class GlobalUtil {
     // 상수들
     private static final BigDecimal PYEONG_TO_SQM = new BigDecimal("0.3025"); // 평을 제곱미터로 변환
     private static final BigDecimal WON_UNIT = new BigDecimal("10000"); // 만원 단위
+    
+    // 날짜 포맷터들
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     /**
      * 거래금액 포맷팅 (만원 단위 제거, 쉼표 추가)
@@ -449,5 +454,77 @@ public class GlobalUtil {
             return "***";
         }
         return accountNumber.substring(0, 4) + "-****-" + accountNumber.substring(accountNumber.length() - 4);
+    }
+
+    // ==================== 날짜 포맷팅 메서드들 ====================
+
+    /**
+     * LocalDateTime을 읽기 쉬운 문자열로 변환
+     * 
+     * @param dateTime 변환할 LocalDateTime
+     * @return 포맷된 문자열 (yyyy-MM-dd HH:mm:ss)
+     */
+    public static String formatDateTime(LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return null;
+        }
+        return dateTime.format(DATE_TIME_FORMATTER);
+    }
+    
+    /**
+     * LocalDateTime을 날짜만 문자열로 변환
+     * 
+     * @param dateTime 변환할 LocalDateTime
+     * @return 포맷된 문자열 (yyyy-MM-dd)
+     */
+    public static String formatDate(LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return null;
+        }
+        return dateTime.format(DATE_FORMATTER);
+    }
+    
+    /**
+     * 문자열을 LocalDateTime으로 파싱
+     * 
+     * @param dateTimeStr 파싱할 문자열 (yyyy-MM-dd HH:mm:ss 형식)
+     * @return LocalDateTime 객체
+     */
+    public static LocalDateTime parseDateTime(String dateTimeStr) {
+        if (dateTimeStr == null || dateTimeStr.trim().isEmpty()) {
+            return null;
+        }
+        return LocalDateTime.parse(dateTimeStr, DATE_TIME_FORMATTER);
+    }
+    
+    /**
+     * 문자열을 날짜만 LocalDateTime으로 파싱 (시간은 00:00:00으로 설정)
+     * 
+     * @param dateStr 파싱할 문자열 (yyyy-MM-dd 형식)
+     * @return LocalDateTime 객체
+     */
+    public static LocalDateTime parseDate(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) {
+            return null;
+        }
+        return LocalDateTime.parse(dateStr + " 00:00:00", DATE_TIME_FORMATTER);
+    }
+    
+    /**
+     * 현재 시간을 포맷된 문자열로 반환
+     * 
+     * @return 현재 시간 문자열 (yyyy-MM-dd HH:mm:ss)
+     */
+    public static String getCurrentDateTimeString() {
+        return formatDateTime(LocalDateTime.now());
+    }
+    
+    /**
+     * 현재 날짜를 포맷된 문자열로 반환
+     * 
+     * @return 현재 날짜 문자열 (yyyy-MM-dd)
+     */
+    public static String getCurrentDateString() {
+        return formatDate(LocalDateTime.now());
     }
 }

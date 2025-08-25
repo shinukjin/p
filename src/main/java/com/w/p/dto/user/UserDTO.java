@@ -78,9 +78,60 @@ public class UserDTO {
         private String phone;
         private String role;
         private String status;
+        private Long totalBudget;
         private LocalDateTime lastLoginAt;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
+    }
+
+    /**
+     * 사용자 정보 업데이트 요청 DTO
+     */
+    @Getter
+    @Setter
+    public static class UpdateRequest {
+        @Size(max = 100, message = "이름은 100자 이하여야 합니다.")
+        private String name;
+
+        @Email(message = "유효한 이메일 주소를 입력해주세요.")
+        @Size(max = 100, message = "이메일은 100자 이하여야 합니다.")
+        private String email;
+
+        @Pattern(regexp = "^[0-9-+()]*$", message = "유효한 전화번호를 입력해주세요.")
+        @Size(max = 20, message = "전화번호는 20자 이하여야 합니다.")
+        private String phone;
+
+        @Size(max = 50, message = "사용자명은 50자 이하여야 합니다.")
+        @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "사용자명은 영문, 숫자, 언더스코어만 사용 가능합니다.")
+        private String username;
+    }
+
+    /**
+     * 총 예산 업데이트 요청 DTO
+     */
+    @Getter
+    @Setter
+    public static class TotalBudgetUpdateRequest {
+        private Long totalBudget;
+    }
+
+    /**
+     * 토큰 업데이트 응답 DTO
+     */
+    @Getter
+    @Setter
+    public static class TokenUpdateResponse {
+        private String token;
+        private long expiresAt;
+        private long expiresIn;
+        private UserInfo user; // 사용자 정보 추가
+
+        public TokenUpdateResponse(String token, long expiresAt, long expiresIn, UserInfo user) {
+            this.token = token;
+            this.expiresAt = expiresAt;
+            this.expiresIn = expiresIn;
+            this.user = user;
+        }
     }
 
     /**

@@ -66,12 +66,10 @@ public class IAdminService extends BaseService implements AdminService {
         updateLastLoginTime(admin.getId());
 
         // JWT 토큰과 만료 시간 정보 생성
-        var tokenInfo = jwtTokenProvider.createTokenWithExpiration(
-            admin.getId(), admin.getUsername(), admin.getRole().name()
-        );
+        JwtTokenProvider.TokenInfo tokenInfo = jwtTokenProvider.generateTokenInfo(admin);
         
         log.info("관리자 로그인 성공: {} (토큰 만료: {})", 
-            GlobalUtil.maskPassword(admin.getUsername()), tokenInfo.getExpiresAtDate());
+            GlobalUtil.maskPassword(admin.getUsername()), tokenInfo.getExpiresAt());
 
         return AdminDTO.LoginResponse.builder()
             .token(tokenInfo.getToken())

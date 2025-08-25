@@ -4,6 +4,7 @@ import { authRoutes } from './authRoutes';
 import { adminRoutes } from './adminRoutes';
 import { realestateRoutes } from './realestateRoutes';
 import { weddingRoutes } from './weddingRoutes';
+import { budgetScheduleRoutes } from './budgetScheduleRoutes';
 import ProtectedRoute from '../components/common/ProtectedRoute';
 
 const AppRoutes: React.FC = () => {
@@ -23,6 +24,11 @@ const AppRoutes: React.FC = () => {
       {/* 웨딩 라우트 (인증 필요) */}
       <Route path="/wedding" element={<ProtectedRoute />}>
         {weddingRoutes}
+      </Route>
+      
+      {/* 예산/일정 관리 라우트 (인증 필요) */}
+      <Route path="/" element={<ProtectedRoute />}>
+        {budgetScheduleRoutes}
       </Route>
       
       {/* 기본 리다이렉트 */}

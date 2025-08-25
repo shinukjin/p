@@ -1,13 +1,20 @@
 package com.w.p.service.user;
 
 import com.w.p.dto.user.UserDTO.*;
+import com.w.p.entity.User;
 
 public interface UserService {
 
-    public SignupResponse signup(Signup request);
+    /**
+     * 회원가입
+     */
+    SignupResponse signup(Signup request);
 
-    // 관리자용 사용자 관리 메서드들
-    
+    /**
+     * 사용자 목록 조회
+     */
+    ListResponse getUserList(int page, int size, String search, String role, String status);
+
     /**
      * 관리자용 사용자 목록 조회 (페이징)
      */
@@ -44,7 +51,27 @@ public interface UserService {
     StatisticsResponse getUserStatistics();
 
     /**
-     * 사용자 일괄 상태 변경
+     * 사용자 상태 일괄 업데이트
      */
     BulkUpdateResponse bulkUpdateUserStatus(BulkStatusUpdateRequest request);
+
+    /**
+     * 사용자 정보 업데이트
+     */
+    void updateUserInfo(Long userId, UpdateRequest request);
+
+    /**
+     * 사용자 총 예산 업데이트
+     */
+    void updateUserTotalBudget(Long userId, TotalBudgetUpdateRequest request);
+
+    /**
+     * 현재 로그인한 사용자 정보 조회
+     */
+    UserInfo getCurrentUserInfo();
+
+    /**
+     * ID로 사용자 조회
+     */
+    User findUserById(Long userId);
 }

@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
 import { checkEnvVariables } from './utils/envCheck';
+import { startTokenCheck } from './utils/auth';
 import LoginPage from './pages/auth/LoginPage';
 import SignupPage from './pages/auth/SignupPage';
 import DashboardPage from './pages/DashboardPage';
@@ -11,6 +12,9 @@ import WeddingHallsPage from './pages/WeddingHallsPage';
 import WeddingServicesPage from './pages/WeddingServicesPage';
 import RealEstatesPage from './pages/RealEstatesPage';
 import ApartmentTradesPage from './pages/ApartmentTradesPage';
+import BudgetSchedulePage from './pages/budgetSchedule/BudgetSchedulePage';
+import MyPage from './pages/MyPage';
+import AppliancePage from './pages/AppliancePage';
 import { adminRoutes } from './routes/adminRoutes';
 
 // React Query 클라이언트 생성
@@ -41,6 +45,12 @@ function App() {
     if (import.meta.env.DEV) {
       checkEnvVariables();
     }
+  }, []);
+
+  // 토큰 상태 체크 시작
+  useEffect(() => {
+    const stopTokenCheck = startTokenCheck();
+    return stopTokenCheck;
   }, []);
 
   return (
@@ -104,6 +114,23 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ApartmentTradesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/budget-schedule"
+              element={
+                <ProtectedRoute>
+                  <BudgetSchedulePage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/my-page"
+              element={
+                <ProtectedRoute>
+                  <MyPage />
                 </ProtectedRoute>
               }
             />

@@ -186,6 +186,65 @@ public class IUserService extends BaseService implements UserService{
             .build();
     }
 
+    @Override
+    public void updateUserInfo(Long userId, UpdateRequest request) {
+        User user = findUserById(userId);
+        
+        // 사용자명 중복 체크 (자신의 사용자명은 제외)
+        if (request.getUsername() != null && !request.getUsername().equals(user.getUsername())) {
+            if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+                throw UserException.usernameExists(request.getUsername());
+            }
+            user.setUsername(request.getUsername());
+        }
+        
+        // 이메일 중복 체크 (자신의 이메일은 제외)
+        if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
+            if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+                throw UserException.emailExists(request.getEmail());
+            }
+            user.setEmail(request.getEmail());
+        }
+        
+        if (request.getName() != null) {
+            user.setName(request.getName());
+        }
+        
+        if (request.getPhone() != null) {
+            user.setPhone(request.getPhone());
+        }
+        
+        userRepository.save(user);
+        log.info("사용자 {} 정보 업데이트 완료", userId);
+    }
+
+    @Override
+    public void updateUserTotalBudget(Long userId, TotalBudgetUpdateRequest request) {
+        User user = findUserById(userId);
+        
+        if (request.getTotalBudget() != null) {
+            user.setTotalBudget(request.getTotalBudget());
+            userRepository.save(user);
+            log.info("사용자 {} 총 예산 업데이트: {}", userId, request.getTotalBudget());
+        }
+    }
+
+    @Override
+    public UserInfo getCurrentUserInfo() {
+        User currentUser = getCurrentUser();
+        return convertToUserInfo(currentUser);
+    }
+
+    @Override
+    public User findUserById(Long userId) {
+        return super.findUserById(userId);
+    }
+
+    @Override
+    public ListResponse getUserList(int page, int size, String search, String role, String status) {
+        return getUserListForAdmin(page, size, search, role, status);
+    }
+
     /**
      * User 엔티티를 UserInfo DTO로 변환
      */
@@ -198,6 +257,7 @@ public class IUserService extends BaseService implements UserService{
             .phone(user.getPhone())
             .role(user.getRole().name())
             .status(user.getStatus().name())
+            .totalBudget(user.getTotalBudget())
             .lastLoginAt(user.getLastLoginAt())
             .createdAt(user.getCreatedAt())
             .updatedAt(user.getUpdatedAt())

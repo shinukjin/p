@@ -7,11 +7,16 @@ export interface User {
   email?: string;
   phone?: string;
   role?: string;
+  roleDescription?: string; // 역할 한글 설명
   status?: string;
+  statusDescription?: string; // 상태 한글 설명
+  totalBudget?: number; // 총 사용가능 예산
   lastLoginAt?: string;
   createdAt?: string;
+  updatedAt?: string; // 수정일 추가
 }
 
+// 로그인 API
 export interface LoginRequest {
   username: string;
   password: string;
@@ -19,8 +24,9 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
-  expiresAt: number; // 토큰 만료 시간 (Unix timestamp)
-  expiresIn: number; // 토큰 만료까지 남은 시간 (초)
+  expiresAt: number;
+  expiresIn: number;
+  user: User; // 사용자 정보 추가
 }
 
 export interface SignupRequest {
@@ -64,4 +70,12 @@ export interface ErrorResponse {
   message: string;
   details?: Record<string, string>;
   timestamp: string;
+}
+
+// 토큰 업데이트 응답 타입
+export interface TokenUpdateResponse {
+  token: string;
+  expiresAt: number;
+  expiresIn: number;
+  user: User; // 사용자 정보 추가
 }

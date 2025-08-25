@@ -1,14 +1,17 @@
 package com.w.p.service.login.impl;
 
+import java.time.LocalDateTime;
+
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.w.p.common.util.GlobalUtil;
 import com.w.p.component.jwt.JwtTokenProvider;
 import com.w.p.dto.login.LoginDTO;
 import com.w.p.dto.login.LoginDTO.LoginRequest;
 import com.w.p.entity.User;
+import com.w.p.entity.User.UserStatus;
 import com.w.p.repository.UserRepository;
 import com.w.p.service.BaseService;
 import com.w.p.service.login.LoginService;
@@ -39,18 +42,41 @@ public class ILoginService extends BaseService implements LoginService {
             throw new BadCredentialsException("Invalid password");
         }
 
-        // 토큰과 만료 시간 정보를 함께 생성
-        var tokenInfo = jwtTokenProvider.createTokenWithExpiration(
-            user.getId(), user.getUsername(), user.getRole().name()
-        );
-        
-        log.info("사용자 로그인 성공: {} (토큰 만료: {})", 
-            user.getUsername(), tokenInfo.getExpiresAtDate());
+        if(user.getStatus() != UserStatus.ACTIVE) {
+            throw new BadCredentialsException("Inactive user");
+        }
 
+        // 새로운 JWT 토큰 생성 (사용자 상세 정보 포함)
+        JwtTokenProvider.TokenInfo tokenInfo = jwtTokenProvider.generateTokenInfo(user);
+        
+        // 마지막 로그인 시간 업데이트
+        user.setLastLoginAt(LocalDateTime.now());
+        userRepository.save(user);
+
+        // 사용자 정보 DTO 생성
+        LoginDTO.UserInfo userInfo = new LoginDTO.UserInfo(
+            user.getId(),
+            user.getUsername(),
+            user.getName(),
+            user.getEmail(),
+            user.getPhone(),
+            user.getRole().name(),
+            user.getRole().getDescription(),
+            user.getStatus().name(),
+            user.getStatus().getDescription(),
+            user.getTotalBudget(),
+            GlobalUtil.formatDateTime(user.getLastLoginAt()),
+            GlobalUtil.formatDateTime(user.getCreatedAt()),
+            GlobalUtil.formatDateTime(user.getUpdatedAt())
+        );
+
+        log.info("사용자 로그인 성공: {}", user.getUsername());
+        
         return new LoginDTO.LoginResponse(
-            tokenInfo.getToken(), 
-            tokenInfo.getExpiresAt(), 
-            tokenInfo.getExpiresIn()
+            tokenInfo.getToken(),
+            tokenInfo.getExpiresAt(),
+            tokenInfo.getExpiresIn(),
+            userInfo
         );
     }
 }

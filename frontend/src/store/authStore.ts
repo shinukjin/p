@@ -12,6 +12,7 @@ interface AuthState {
 
 interface AuthActions {
   setUser: (user: User) => void;
+  updateUser: (user: User) => void;
   setToken: (token: string) => void;
   setTokenExpiresAt: (expiresAt: number) => void;
   login: (user: User, token: string, expiresAt: number) => void;
@@ -35,6 +36,10 @@ export const useAuthStore = create<AuthStore>()(
       // 액션들
       setUser: (user) => {
         set({ user, isAuthenticated: true });
+      },
+
+      updateUser: (user) => {
+        set({ user });
       },
 
       setToken: (token) => {

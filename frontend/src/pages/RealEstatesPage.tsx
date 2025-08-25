@@ -84,8 +84,8 @@ const RealEstatesPage = ({}: RealEstatesPageProps) => {
 
         {/* 컨텐츠 영역 */}
         <div className="min-h-[600px]">
-          {showMap ? (
-            /* 지도 뷰 */
+      {showMap ? (
+        /* 지도 뷰 */
             <RealEstateMapView
               filteredEstates={filteredEstates}
               mapCenter={mapCenter}
@@ -110,8 +110,8 @@ const RealEstatesPage = ({}: RealEstatesPageProps) => {
                 hasEstates={!loading && filteredEstates.length === 0}
                 onRegisterClick={handleRegistrationOpen}
               />
-            </>
-          )}
+        </>
+      )}
         </div>
 
         {/* 새 매물 등록 모달 */}

@@ -37,8 +37,8 @@ const LoginPage: React.FC = () => {
       const response = await login(data);
       if (response.success && response.data) {
         // 백엔드가 토큰만 반환하는 경우 사용자 정보는 최소 username만 구성
-        const user = { id: 0, username: data.username } as any;
-        loginAction(user, response.data.token);
+        const user = response.data.user as any;
+        loginAction(user, response.data.token, response.data.expiresAt);
         navigate('/dashboard');
       } else {
         setError(response.message || '로그인에 실패했습니다.');

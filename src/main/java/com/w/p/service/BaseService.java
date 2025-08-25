@@ -4,6 +4,8 @@ import com.w.p.entity.User;
 import com.w.p.exception.UserException;
 import com.w.p.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * 공통 서비스 기능을 제공하는 베이스 클래스
@@ -69,5 +71,18 @@ public abstract class BaseService {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    /**
+     * 현재 로그인한 사용자 조회
+     */
+    protected User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw UserException.unauthorized();
+        }
+        
+        String username = authentication.getName();
+        return findUserByUsername(username);
     }
 }

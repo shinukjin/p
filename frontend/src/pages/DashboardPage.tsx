@@ -1,10 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FiHeart, FiMapPin, FiCamera, FiPackage, FiEdit3, FiTrendingUp } from 'react-icons/fi';
+import { FiHeart, FiMapPin, FiCamera, FiPackage, FiEdit3, FiTrendingUp, FiUser } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
+import { useAuthStore } from '../store/authStore';
 
 const DashboardPage: React.FC = () => {
+  const { user } = useAuthStore();
+  
   return (
     <MainLayout title="대시보드">
       <motion.div
@@ -14,12 +17,35 @@ const DashboardPage: React.FC = () => {
       >
         {/* 환영 메시지 */}
         <div className="card p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            안녕하세요! 💒
-          </h2>
-          <p className="text-gray-600">
-            부동산 정보를 위한 정보를 체계적으로 관리해보세요. 식장, 스드메, 부동산 정보를 한 곳에서!
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                안녕하세요! 💒
+              </h2>
+              <p className="text-gray-600 mb-4">
+                부동산 정보를 위한 정보를 체계적으로 관리해보세요. 식장, 스드메, 부동산 정보를 한 곳에서!
+              </p>
+              {user && (
+                <div className="flex items-center space-x-4 text-sm text-gray-600">
+                  <div className="flex items-center">
+                    <FiUser className="w-4 h-4 mr-2" />
+                    <span>{user.name || user.username}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                    <span>{user.statusDescription || user.status}</span>
+                  </div>
+                  {user.totalBudget && (
+                    <div className="flex items-center">
+                      <span className="font-medium text-gray-900">
+                        예산: {user.totalBudget.toLocaleString()}원
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* 통계 카드들 */}
@@ -155,6 +181,8 @@ const DashboardPage: React.FC = () => {
               </p>
             </Link>
           </motion.div>
+
+
         </div>
         
       </motion.div>
