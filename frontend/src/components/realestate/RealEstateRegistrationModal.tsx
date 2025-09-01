@@ -5,7 +5,7 @@ import type { RealEstateFormData } from '../../types/realestate';
 interface RealEstateRegistrationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: RealEstateFormData) => void;
+  onSubmit: (data: FormData) => void;
   initialData?: Partial<RealEstateFormData>;
 }
 
@@ -17,12 +17,12 @@ const RealEstateRegistrationModal: React.FC<RealEstateRegistrationModalProps> = 
 }) => {
   const [formData, setFormData] = useState<RealEstateFormData>({
     title: '',
-    address: '',
-    detailAddress: '',
-    latitude: 37.5665,
-    longitude: 126.9780,
     propertyType: 'APARTMENT',
     transactionType: 'SALE',
+    address: '',
+    detailAddress: '',
+    latitude: '37.5665',
+    longitude: '126.9780',
     price: '',
     deposit: '',
     monthlyRent: '',
@@ -102,7 +102,60 @@ const RealEstateRegistrationModal: React.FC<RealEstateRegistrationModalProps> = 
 
     setIsSubmitting(true);
     try {
-      await onSubmit(formData);
+      // 이미지 상태 먼저 확인
+      console.log('🖼️ 제출 전 이미지 상태:', {
+        images: formData.images,
+        imagesLength: formData.images?.length,
+        firstImage: formData.images?.[0],
+        firstImageName: formData.images?.[0]?.name,
+        firstImageSize: formData.images?.[0]?.size,
+        firstImageType: formData.images?.[0]?.type
+      });
+      
+      const submitFormData = new FormData();
+      
+      // 부동산 데이터를 JSON으로 변환하여 전송
+      const { images, ...dataWithoutImages } = formData;
+      const jsonData = JSON.stringify(dataWithoutImages);
+      submitFormData.append('data', jsonData);
+      
+      console.log('📝 FormData 생성:', {
+        jsonData,
+        imagesCount: images?.length || 0,
+        images: images,
+        imagesType: typeof images,
+        isArray: Array.isArray(images)
+      });
+      
+      // 이미지 파일들 추가 (더 상세한 로깅)
+      if (images && images.length > 0) {
+        console.log('🖼️ 이미지 추가 시작');
+        images.forEach((image, index) => {
+          console.log(`📎 이미지 ${index} 추가:`, {
+            name: image.name,
+            size: image.size,
+            type: image.type,
+            lastModified: image.lastModified,
+            isFile: image instanceof File
+          });
+          submitFormData.append('images', image);
+        });
+        console.log('✅ 이미지 추가 완료');
+      } else {
+        console.log('⚠️ 이미지가 없습니다!');
+      }
+      
+      // FormData 내용 확인
+      console.log('🔍 FormData 내용:');
+      let formDataSize = 0;
+      for (let [key, value] of submitFormData.entries()) {
+        console.log(`${key}:`, value);
+        formDataSize++;
+      }
+      
+      // FormData 크기 확인
+     
+      await onSubmit(submitFormData);
       onClose();
     } catch (error) {
       console.error('매물 등록 실패:', error);
@@ -114,12 +167,12 @@ const RealEstateRegistrationModal: React.FC<RealEstateRegistrationModalProps> = 
   const resetForm = () => {
     setFormData({
       title: '',
-      address: '',
-      detailAddress: '',
-      latitude: 37.5665,
-      longitude: 126.9780,
       propertyType: 'APARTMENT',
       transactionType: 'SALE',
+      address: '',
+      detailAddress: '',
+      latitude: '37.5665',
+      longitude: '126.9780',
       price: '',
       deposit: '',
       monthlyRent: '',

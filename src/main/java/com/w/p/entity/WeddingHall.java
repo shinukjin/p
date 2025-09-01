@@ -63,12 +63,14 @@ public class WeddingHall {
     private String facilities; // 부대시설 (JSON 형태로 저장)
 
     @Column
+    @Builder.Default
     private Boolean isBookmarked = false; // 북마크 여부
 
     @Column
     private String memo; // 개인 메모
 
     @Column
+    @Builder.Default
     private String status = "active"; // 상태 (active, inactive, deleted)
 
     @ManyToOne(fetch = FetchType.LAZY)

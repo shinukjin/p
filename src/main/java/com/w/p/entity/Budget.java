@@ -67,7 +67,9 @@ public class Budget {
         IN_PROGRESS,  // 진행 중
         COMPLETED,    // 완료
         OVERBUDGET,   // 예산 초과
-        CANCELLED     // 취소
+        CANCELLED,    // 취소
+        APPROVED,     // 승인됨
+        REJECTED      // 반려됨
     }
     
     public enum Priority {

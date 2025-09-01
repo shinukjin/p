@@ -98,6 +98,21 @@ public class RealEstate {
     @Column
     private String contactInfo; // 연락처 정보
 
+    @Column
+    private Integer parking; // 주차 정보
+
+    @Column
+    private String contactName; // 연락처 이름
+
+    @Column
+    private String contactPhone; // 연락처 전화번호
+
+    @Column
+    private String contactEmail; // 연락처 이메일
+
+    @Column
+    private Boolean isAvailable; // 매물 상태 (true: 판매중, false: 판매완료)
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user; // 등록한 사용자

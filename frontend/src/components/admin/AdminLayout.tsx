@@ -39,7 +39,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
     { name: '사용자 관리', path: '/admin/users', icon: FiUsers },
     { name: '웨딩홀 관리', path: '/admin/wedding-halls', icon: FiHeart },
     { name: '시스템 설정', path: '/admin/system', icon: FiSettings },
-    { name: '로그', path: '/admin/logs', icon: FiFileText },
+    { name: '시스템 로그', path: '/admin/logs', icon: FiFileText },
   ];
 
   const isActive = (path: string) => {

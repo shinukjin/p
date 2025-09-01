@@ -191,6 +191,21 @@ public class JwtTokenProvider {
     }
 
     /**
+     * 토큰에서 만료 시간 추출
+     */
+    public Date getExpirationDateFromToken(String token) {
+        Claims claims = getClaims(token);
+        return claims.getExpiration();
+    }
+
+    /**
+     * 토큰에서 사용자명 추출 (getUsername과 동일)
+     */
+    public String getUsernameFromToken(String token) {
+        return getUsername(token);
+    }
+
+    /**
      * 토큰 정보를 담는 내부 클래스
      */
     public static class TokenInfo {

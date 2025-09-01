@@ -42,29 +42,30 @@ export interface RealEstate {
   updatedAt?: string;
 }
 
+// 백엔드 DTO와 일치하는 폼 데이터 타입
 export interface RealEstateFormData {
   title: string;
+  propertyType: string; // 백엔드에서 String으로 받음
+  transactionType: string; // 백엔드에서 String으로 받음
   address: string;
   detailAddress: string;
-  latitude: number;
-  longitude: number;
-  propertyType: PropertyType;
-  transactionType: TransactionType;
-  price: string;
-  deposit: string;
-  monthlyRent: string;
-  area: string;
-  rooms: string;
-  bathrooms: string;
-  parking: string;
-  floor: string;
-  totalFloors: string;
-  yearBuilt: string;
+  latitude: string; // 백엔드에서 String으로 받음
+  longitude: string; // 백엔드에서 String으로 받음
+  price: string; // 백엔드에서 String으로 받음
+  deposit: string; // 백엔드에서 String으로 받음
+  monthlyRent: string; // 백엔드에서 String으로 받음
+  area: string; // 백엔드에서 String으로 받음
+  rooms: string; // 백엔드에서 String으로 받음
+  bathrooms: string; // 백엔드에서 String으로 받음
+  parking: string; // 백엔드에서 String으로 받음
+  floor: string; // 백엔드에서 String으로 받음
+  totalFloors: string; // 백엔드에서 String으로 받음
+  yearBuilt: string; // 백엔드에서 String으로 받음
   description: string;
   contactName: string;
   contactPhone: string;
   contactEmail: string;
-  images: File[];
+  images: File[]; // 이미지 파일 배열
 }
 
 export interface RealEstateSearchFilter {

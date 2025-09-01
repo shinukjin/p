@@ -43,14 +43,14 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 // 공개 접근 가능한 엔드포인트
-                .requestMatchers("/api/v1/auth/**").permitAll()     // 로그인/회원가입은 인증 불필요
+                .requestMatchers("/api/v1/login").permitAll()
+                .requestMatchers("/api/v1/signup").permitAll()     // 로그인/회원가입은 인증 불필요
                 .requestMatchers("/api/v1/test/**").permitAll()     // 테스트 API는 인증 불필요
                 .requestMatchers("/error").permitAll()             // 에러 페이지는 인증 불필요
                 .requestMatchers("/h2-console/**").permitAll()     // H2 콘솔은 인증 불필요
                 
                 // 관리자 인증 관련 (로그인 페이지 등)
                 .requestMatchers("/api/v1/admin/login").permitAll()
-                // .requestMatchers("/api/v1/admin/**").permitAll()
                 
                 // 관리자 전용 API - ADMIN, SUPER_ADMIN, OPERATOR 역할 필요
                 .requestMatchers("/api/v1/admin/**").hasAnyAuthority("ADMIN", "SUPER_ADMIN", "OPERATOR")
@@ -65,10 +65,6 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/admin/system/**").hasRole("SUPER_ADMIN")
                 
                 // 일반 사용자 API - 인증된 사용자 모두 접근 가능
-                .requestMatchers("/api/v1/user/**").authenticated()
-                .requestMatchers("/api/v1/apartment/**").authenticated()
-                .requestMatchers("/api/v1/map/**").authenticated()
-                .requestMatchers("/api/v1/real-estates/**").authenticated()
                 
                 // 나머지는 모두 인증 필요
                 .anyRequest().authenticated()

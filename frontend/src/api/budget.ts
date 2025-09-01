@@ -37,17 +37,7 @@ export const deleteBudget = async (budgetId: number, userId: number): Promise<Ap
   return response.data;
 };
 
-// 임박한 예산 조회 (7일 이내)
-export const getUpcomingBudgets = async (userId: number): Promise<ApiResponse<Budget[]>> => {
-  const response = await apiClient.get<ApiResponse<Budget[]>>(`/budgets/upcoming?userId=${userId}`);
-  return response.data;
-};
 
-// 예산 초과 항목 조회
-export const getOverBudgetItems = async (userId: number): Promise<ApiResponse<Budget[]>> => {
-  const response = await apiClient.get<ApiResponse<Budget[]>>(`/budgets/overbudget?userId=${userId}`);
-  return response.data;
-};
 
 // 카테고리별 예산 요약
 export const getBudgetSummaryByCategory = async (userId: number): Promise<ApiResponse<BudgetSummary[]>> => {

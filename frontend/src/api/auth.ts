@@ -38,7 +38,7 @@ export interface UpdateTotalBudgetRequest {
 
 // 로그인 API
 export const login = async (data: LoginRequest): Promise<ApiResponse<LoginResponse>> => {
-  const response = await apiClient.post<ApiResponse<LoginResponse>>('/auth/login', data);
+  const response = await apiClient.post<ApiResponse<LoginResponse>>('/login', data);
   return response.data;
 };
 
@@ -50,14 +50,14 @@ export const adminLogin = async (data: LoginRequest): Promise<ApiResponse<AdminL
 
 // 회원가입 API
 export const signup = async (data: SignupRequest): Promise<ApiResponse<SignupResponse>> => {
-  const response = await apiClient.post<ApiResponse<SignupResponse>>('/auth/signup', data);
+  const response = await apiClient.post<ApiResponse<SignupResponse>>('/signup', data);
   return response.data;
 };
 
 // 토큰 검증 API (선택사항)
 export const validateToken = async (): Promise<boolean> => {
   try {
-    await apiClient.get('/auth/validate');
+    await apiClient.get('/validate');
     return true;
   } catch {
     return false;
@@ -72,18 +72,18 @@ export const logout = (): void => {
 
 // 현재 사용자 정보 조회 API
 export const getCurrentUserInfo = async (): Promise<ApiResponse<UserInfo>> => {
-  const response = await apiClient.get<ApiResponse<UserInfo>>('/auth/me');
+  const response = await apiClient.get<ApiResponse<UserInfo>>('/me');
   return response.data;
 };
 
 // 사용자 정보 업데이트 API
 export const updateUserInfo = async (data: UpdateUserRequest): Promise<ApiResponse<void>> => {
-  const response = await apiClient.put<ApiResponse<void>>('/auth/me', data);
+  const response = await apiClient.put<ApiResponse<void>>('/me', data);
   return response.data;
 };
 
 // 사용자 총 예산 업데이트 API
 export const updateUserTotalBudget = async (data: UpdateTotalBudgetRequest): Promise<ApiResponse<void>> => {
-  const response = await apiClient.put<ApiResponse<void>>('/auth/me/budget', data);
+  const response = await apiClient.put<ApiResponse<void>>('/me/budget', data);
   return response.data;
 };

@@ -27,7 +27,9 @@ export const useRealEstateState = () => {
             lat: response.data[0].latitude,
             lng: response.data[0].longitude
           });
-          setSelectedEstateId(response.data[0].id);
+          if (response.data[0].id) {
+            setSelectedEstateId(response.data[0].id);
+          }
         }
       }
     } catch (error) {
@@ -38,17 +40,46 @@ export const useRealEstateState = () => {
   };
 
   // 매물 등록
-  const handleRegisterEstate = async (data: RealEstateFormData, geocodeAddress: (address: string) => Promise<{ lat: number; lng: number } | null>) => {
+  const handleRegisterEstate = async (data: RealEstateFormData | FormData, geocodeAddress: (address: string) => Promise<{ lat: number; lng: number } | null>) => {
     try {
-      // 주소를 좌표로 변환
-      const coordinatesResponse = await geocodeAddress(data.address);
-      if (coordinatesResponse) {
-        data.latitude = coordinatesResponse.lat;
-        data.longitude = coordinatesResponse.lng;
+      let estateData: RealEstateFormData;
+      
+      if (data instanceof FormData) {
+        // FormData에서 데이터 추출
+        const dataJson = data.get('data') as string;
+        const images = data.getAll('images') as File[];
+        
+        // JSON 데이터 파싱
+        estateData = JSON.parse(dataJson);
+        estateData.images = images;
+      } else {
+        // 기존 RealEstateFormData
+        estateData = data;
       }
       
-      // 매물 등록 API 호출
-      const response = await registerRealEstate(data);
+      // 주소를 좌표로 변환
+      const coordinatesResponse = await geocodeAddress(estateData.address);
+      if (coordinatesResponse) {
+        estateData.latitude = coordinatesResponse.lat.toString();
+        estateData.longitude = coordinatesResponse.lng.toString();
+      }
+      
+      // FormData 생성하여 이미지와 데이터를 함께 전송
+      const formData = new FormData();
+      
+      // 부동산 데이터를 JSON으로 변환하여 전송
+      const { images, ...dataWithoutImages } = estateData;
+      formData.append('data', JSON.stringify(dataWithoutImages));
+      
+      // 이미지 파일들 추가
+      if (images && images.length > 0) {
+        images.forEach((image, index) => {
+          formData.append('images', image);
+        });
+      }
+      
+      // 매물 등록 API 호출 (FormData 사용)
+      const response = await registerRealEstate(formData);
       
       if (response.success) {
         console.log('매물 등록 성공:', response.data);

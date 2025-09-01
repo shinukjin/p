@@ -13,7 +13,8 @@ import {
   FiHeart,
   FiCamera,
   FiMapPin,
-  FiTrendingUp
+  FiTrendingUp,
+  FiBarChart
 } from 'react-icons/fi';
 
 interface MainLayoutProps {

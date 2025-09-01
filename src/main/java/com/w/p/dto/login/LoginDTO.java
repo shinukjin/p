@@ -74,5 +74,36 @@ public class LoginDTO {
             this.createdAt = createdAt;
             this.updatedAt = updatedAt;
         }
+
+        public UserInfo(Long id, String username, String name, String email, 
+                       com.w.p.entity.User.UserRole role, com.w.p.entity.User.UserStatus status, 
+                       String createdAt, String updatedAt) {
+            this.id = id;
+            this.username = username;
+            this.name = name;
+            this.email = email;
+            this.role = role.name();
+            this.roleDescription = role.getDescription();
+            this.status = status.name();
+            this.statusDescription = status.getDescription();
+            this.createdAt = createdAt;
+            this.updatedAt = updatedAt;
+        }
+    }
+
+    /**
+     * 토큰 갱신 응답
+     */
+    @Getter
+    public static class TokenRefreshResponse {
+        private String token;
+        private long expiresAt;
+        private long expiresIn;
+
+        public TokenRefreshResponse(String token, long expiresAt, long expiresIn) {
+            this.token = token;
+            this.expiresAt = expiresAt;
+            this.expiresIn = expiresIn;
+        }
     }
 }

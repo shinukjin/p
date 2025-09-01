@@ -43,10 +43,21 @@ const RealEstatesPage = ({}: RealEstatesPageProps) => {
   } = useRealEstateFilters(realEstates);
 
   // 매물 등록 핸들러
-  const handleRegistrationSubmit = async (data: RealEstateFormData) => {
-    const success = await handleRegisterEstate(data, geocodeAddress);
-    if (success) {
-      setIsRegistrationModalOpen(false);
+  const handleRegistrationSubmit = async (formData: FormData) => {
+    try {
+      console.log('📝 RealEstatesPage에서 FormData 수신:', formData);
+      
+      // FormData 내용 확인
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+      
+      const success = await handleRegisterEstate(formData, geocodeAddress);
+      if (success) {
+        setIsRegistrationModalOpen(false);
+      }
+    } catch (error) {
+      console.error('매물 등록 데이터 처리 실패:', error);
     }
   };
 

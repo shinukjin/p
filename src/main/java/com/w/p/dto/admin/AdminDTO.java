@@ -117,7 +117,9 @@ public class AdminDTO {
         private String keyword;
         private User.UserRole role;
         private User.UserStatus status;
+        @Builder.Default
         private Integer page = 1;
+        @Builder.Default
         private Integer size = 20;
     }
 
@@ -167,5 +169,39 @@ public class AdminDTO {
     public static class ChartData {
         private String label;
         private long value;
+    }
+
+    /**
+     * 시스템 통계 응답
+     */
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class SystemStatisticsResponse {
+        private long totalUsers;
+        private long activeUsers;
+        private long inactiveUsers;
+        private long adminUsers;
+        private long regularUsers;
+    }
+
+    /**
+     * 사용자 정보
+     */
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class UserInfo {
+        private Long id;
+        private String username;
+        private String name;
+        private String email;
+        private User.UserRole role;
+        private User.UserStatus status;
+        private LocalDateTime createdAt;
     }
 }
