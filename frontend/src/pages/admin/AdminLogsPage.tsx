@@ -8,11 +8,14 @@ import {
   FiAlertCircle,
   FiInfo,
   FiAlertTriangle,
-  FiXCircle
+  FiXCircle,
+  FiCopy,
+  FiCheck
 } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 import * as logsApi from '../../api/logs';
 import type { ApiLog, LogFilters, LogStatistics } from '../../api/logs';
+import Pagination from '../../components/common/Pagination';
 
 const AdminLogsPage: React.FC = () => {
   const [logs, setLogs] = useState<ApiLog[]>([]);
@@ -21,7 +24,10 @@ const AdminLogsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
-  const [pageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(20);
+  
+  // 복사 상태 관리
+  const [copiedItems, setCopiedItems] = useState<{ [key: string]: boolean }>({});
   
   // 필터 상태
   const [filters, setFilters] = useState<LogFilters>({
@@ -150,6 +156,11 @@ const AdminLogsPage: React.FC = () => {
     setFilters(prev => ({ ...prev, page }));
   };
 
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setFilters(prev => ({ ...prev, size: newPageSize, page: 0 }));
+  };
+
   const handleSort = (sortBy: string) => {
     setFilters(prev => ({
       ...prev,
@@ -213,6 +224,30 @@ const AdminLogsPage: React.FC = () => {
     return `${(time / 1000).toFixed(2)}s`;
   };
 
+  // 텍스트 길이 제한 함수
+  const truncateText = (text: string, maxLength: number = 30) => {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
+  // 복사 기능
+  const copyToClipboard = async (text: string, itemKey: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedItems(prev => ({ ...prev, [itemKey]: true }));
+      toast.success('클립보드에 복사되었습니다.');
+      
+      // 2초 후 복사 상태 초기화
+      setTimeout(() => {
+        setCopiedItems(prev => ({ ...prev, [itemKey]: false }));
+      }, 2000);
+    } catch (error) {
+      console.error('복사 실패:', error);
+      toast.error('복사에 실패했습니다.');
+    }
+  };
+
   if (loading && logs.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -263,7 +298,22 @@ const AdminLogsPage: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-900">로그 필터</h2>
-          <div className="flex space-x-2">
+          <div className="flex items-center space-x-2">
+            {/* 페이지 크기 선택 */}
+            <div className="flex items-center space-x-2">
+              <label className="text-sm text-gray-600">페이지 크기:</label>
+              <select
+                value={pageSize}
+                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value={10}>10개</option>
+                <option value={20}>20개</option>
+                <option value={50}>50개</option>
+                <option value={100}>100개</option>
+              </select>
+            </div>
+            
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
@@ -364,7 +414,7 @@ const AdminLogsPage: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('logLevel')}
                     className="flex items-center space-x-1 hover:text-gray-700"
@@ -372,7 +422,7 @@ const AdminLogsPage: React.FC = () => {
                     <span>레벨</span>
                   </button>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('createdAt')}
                     className="flex items-center space-x-1 hover:text-gray-700"
@@ -380,7 +430,7 @@ const AdminLogsPage: React.FC = () => {
                     <span>시간</span>
                   </button>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('username')}
                     className="flex items-center space-x-1 hover:text-gray-700"
@@ -388,7 +438,7 @@ const AdminLogsPage: React.FC = () => {
                     <span>사용자</span>
                   </button>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('method')}
                     className="flex items-center space-x-1 hover:text-gray-700"
@@ -396,7 +446,7 @@ const AdminLogsPage: React.FC = () => {
                     <span>메서드</span>
                   </button>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('endpoint')}
                     className="flex items-center space-x-1 hover:text-gray-700"
@@ -404,7 +454,7 @@ const AdminLogsPage: React.FC = () => {
                     <span>엔드포인트</span>
                   </button>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('responseStatus')}
                     className="flex items-center space-x-1 hover:text-gray-700"
@@ -412,7 +462,7 @@ const AdminLogsPage: React.FC = () => {
                     <span>상태</span>
                   </button>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('executionTime')}
                     className="flex items-center space-x-1 hover:text-gray-700"
@@ -420,10 +470,10 @@ const AdminLogsPage: React.FC = () => {
                     <span>실행시간</span>
                   </button>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  요청 정보
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  요청 정보 (복사 가능)
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   작업
                 </th>
               </tr>
@@ -431,7 +481,7 @@ const AdminLogsPage: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {logs && logs.length > 0 ? logs.map((log) => (
                 <tr key={log.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center space-x-2">
                       {getLogLevelIcon(log.logLevel)}
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getLogLevelColor(log.logLevel)}`}>
@@ -439,16 +489,16 @@ const AdminLogsPage: React.FC = () => {
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
                     {formatDate(log.createdAt)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{log.username}</div>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-xs font-medium text-gray-900">{log.username}</div>
                     {log.userId && (
-                      <div className="text-sm text-gray-500">ID: {log.userId}</div>
+                      <div className="text-xs text-gray-500">ID: {log.userId}</div>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${
                       log.method === 'GET' ? 'bg-green-100 text-green-800' :
                       log.method === 'POST' ? 'bg-blue-100 text-blue-800' :
@@ -459,12 +509,12 @@ const AdminLogsPage: React.FC = () => {
                       {log.method}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 max-w-xs truncate" title={log.endpoint}>
-                      {log.endpoint}
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-xs text-gray-900 max-w-xs truncate" title={log.endpoint}>
+                      {truncateText(log.endpoint, 40)}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${
                       log.responseStatus >= 200 && log.responseStatus < 300 ? 'bg-green-100 text-green-800' :
                       log.responseStatus >= 400 && log.responseStatus < 500 ? 'bg-yellow-100 text-yellow-800' :
@@ -474,31 +524,71 @@ const AdminLogsPage: React.FC = () => {
                       {log.responseStatus}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
                     {formatExecutionTime(log.executionTime)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
                     <div className="max-w-xs">
                       {log.queryParameters && (
                         <div className="mb-1">
-                          <span className="text-xs text-gray-500">쿼리:</span>
-                          <div className="text-xs bg-gray-100 p-1 rounded truncate" title={log.queryParameters}>
-                            {log.queryParameters}
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">쿼리:</span>
+                            <button
+                              onClick={() => copyToClipboard(log.queryParameters || '', `query-${log.id}`)}
+                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                              title="쿼리 파라미터 복사"
+                            >
+                              {copiedItems[`query-${log.id}`] ? (
+                                <FiCheck className="w-3 h-3 text-green-500" />
+                              ) : (
+                                <FiCopy className="w-3 h-3" />
+                              )}
+                            </button>
+                          </div>
+                          <div className="text-xs bg-gray-100 p-1 rounded truncate max-w-32" title={log.queryParameters}>
+                            {truncateText(log.queryParameters, 35)}
                           </div>
                         </div>
                       )}
                       {log.requestBody && (
                         <div>
-                          <span className="text-xs text-gray-500">바디:</span>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">바디:</span>
+                            <button
+                              onClick={() => copyToClipboard(log.requestBody || '', `body-${log.id}`)}
+                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                              title="요청 바디 복사"
+                            >
+                              {copiedItems[`body-${log.id}`] ? (
+                                <FiCheck className="w-3 h-3 text-green-500" />
+                              ) : (
+                                <FiCopy className="w-3 h-3" />
+                              )}
+                            </button>
+                          </div>
                           <div className="text-xs bg-blue-100 p-1 rounded truncate max-w-32" title={log.requestBody}>
-                            {log.requestBody.length > 50 ? `${log.requestBody.substring(0, 50)}...` : log.requestBody}
+                            {truncateText(log.requestBody, 35)}
                           </div>
                         </div>
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <td className="px-4 py-3 whitespace-nowrap text-xs font-medium">
                     <div className="flex space-x-2">
+                      <button
+                        onClick={() => {
+                          const logData = JSON.stringify(log, null, 2);
+                          copyToClipboard(logData, `log-${log.id}`);
+                        }}
+                        className="text-purple-600 hover:text-purple-900 transition-colors"
+                        title="전체 로그 정보 복사"
+                      >
+                        {copiedItems[`log-${log.id}`] ? (
+                          <FiCheck className="w-4 h-4" />
+                        ) : (
+                          <FiCopy className="w-4 h-4" />
+                        )}
+                      </button>
                       <button
                         onClick={() => {/* 로그 상세 보기 */}}
                         className="text-blue-600 hover:text-blue-900 transition-colors"
@@ -518,7 +608,7 @@ const AdminLogsPage: React.FC = () => {
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
                     {loading ? '로딩 중...' : '로그가 없습니다.'}
                   </td>
                 </tr>
@@ -529,49 +619,14 @@ const AdminLogsPage: React.FC = () => {
       </div>
 
       {/* 페이지네이션 */}
-      {(totalPages || 0) > 1 && (
-        <div className="mt-6 flex justify-center">
-          <nav className="flex space-x-1">
-            <button
-              onClick={() => handlePageChange((currentPage || 0) - 1)}
-              disabled={(currentPage || 0) === 0}
-              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              이전
-            </button>
-            
-            {Array.from({ length: Math.min(5, totalPages || 0) }, (_, i) => {
-              const page = Math.max(0, Math.min((totalPages || 0) - 1, (currentPage || 0) - 2 + i));
-              return (
-                <button
-                  key={page}
-                  onClick={() => handlePageChange(page)}
-                  className={`px-3 py-2 text-sm font-medium border ${
-                    page === (currentPage || 0)
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {page + 1}
-                </button>
-              );
-            })}
-            
-            <button
-              onClick={() => handlePageChange((currentPage || 0) + 1)}
-              disabled={(currentPage || 0) === (totalPages || 0) - 1}
-              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              다음
-            </button>
-          </nav>
-        </div>
-      )}
-
-      {/* 페이지 정보 */}
-      <div className="mt-4 text-center text-sm text-gray-500">
-        총 {(totalElements || 0).toLocaleString()}개의 로그 중 {((currentPage || 0) * pageSize) + 1} - {Math.min(((currentPage || 0) + 1) * pageSize, totalElements || 0)}번째
-      </div>
+      <Pagination
+        currentPage={currentPage || 0}
+        totalPages={totalPages || 0}
+        totalElements={totalElements || 0}
+        pageSize={pageSize}
+        onPageChange={handlePageChange}
+        showPageInfo={true}
+      />
     </div>
   );
 };

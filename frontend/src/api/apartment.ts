@@ -43,9 +43,9 @@ export interface ApartmentSearchParams {
   sortOrder?: string;      // 정렬 순서 (asc, desc)
 }
 
-// 지역코드 조회
+// 지역코드 조회 (공통코드 API 사용)
 export const getRegionCodes = async () => {
-  const response = await apiClient.get<ApiResponse<RegionCode[]>>('/apartment/region-codes');
+  const response = await apiClient.get<ApiResponse<RegionCode[]>>('/common-codes/001');
   return response.data;
 };
 

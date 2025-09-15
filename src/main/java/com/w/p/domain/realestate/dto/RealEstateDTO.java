@@ -36,7 +36,7 @@ public class RealEstateDTO {
     private Integer buildYear;
     private String description;
     private String imageUrl;
-    private String images;
+    private String[] images;
     private String facilities;
     private String transportation;
     private Boolean isBookmarked;

@@ -9,7 +9,8 @@ import {
   FiLogOut,
   FiUser,
   FiHome,
-  FiHeart
+  FiHeart,
+  FiCode
 } from 'react-icons/fi';
 
 interface AdminLayoutProps {
@@ -38,6 +39,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
     { name: '대시보드', path: '/admin/dashboard', icon: FiHome },
     { name: '사용자 관리', path: '/admin/users', icon: FiUsers },
     { name: '웨딩홀 관리', path: '/admin/wedding-halls', icon: FiHeart },
+    { name: '공통코드 관리', path: '/admin/common-codes', icon: FiCode },
     { name: '시스템 설정', path: '/admin/system', icon: FiSettings },
     { name: '시스템 로그', path: '/admin/logs', icon: FiFileText },
   ];

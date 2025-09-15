@@ -114,7 +114,7 @@ export const checkTokenStatus = (): boolean => {
 export const startTokenCheck = (): (() => void) => {
   const interval = setInterval(() => {
     checkTokenStatus();
-  }, 60000); // 1분마다 체크
+  }, 10000); // 1분마다 체크
   
   return () => clearInterval(interval);
 };

@@ -8,6 +8,7 @@ import AdminWeddingHallsPage from '../pages/admin/AdminWeddingHallsPage';
 import AdminWeddingHallFormPage from '../pages/admin/AdminWeddingHallFormPage';
 import AdminWeddingHallDetailPage from '../pages/admin/AdminWeddingHallDetailPage';
 import AdminLogsPage from '../pages/admin/AdminLogsPage';
+import AdminCommonCodePage from '../pages/admin/AdminCommonCodePage';
 import { useAuthStore } from '../store/authStore';
 
 // 관리자 보호된 라우트 컴포넌트
@@ -52,6 +53,7 @@ export const adminRoutes = (
       {/* 추가 관리자 페이지들 */}
       <Route path="system" element={<div>시스템 설정 페이지</div>} />
       <Route path="logs" element={<AdminLogsPage />} />
+      <Route path="common-codes" element={<AdminCommonCodePage />} />
     </Route>
   </>
 );
